@@ -1,8 +1,8 @@
 #include <vector>
 
 double EPSILON = 0.1;
-int K_VAL = 9 / EPSILON;
-int P_VAL = 1;
+int K_VAL = (int) (9.0 / (EPSILON*EPSILON));
+double P_VAL = 1.0;
 
 struct R1Tuple {
   int a;
@@ -52,7 +52,7 @@ int main() {
     //R2 -> (b,c,h2(c))
     for (int b = 0; b < R2.size(); b++) {
         for (int c = 0; c < R2[b].size(); c++) {
-          if(R1[b][c] == 1) {
+          if(R2[b][c] == 1) {
             double hashVal = hash(c);
             R2Tuples.push_back({b, c, hashVal});
           }
@@ -92,11 +92,11 @@ int main() {
     std::vector<std::pair<int,std::vector<R2Tuple>>> Ci;
     start = 0;
 
-    while(start < R1Tuples.size()){
+    while(start < R2Tuples.size()){
         int currB = R2Tuples[start].b;
         int end = start+1;
 
-        while(end < R1Tuples.size() && R2Tuples[end].b == currB){
+        while(end < R2Tuples.size() && R2Tuples[end].b == currB){
             end++;
         }
 
@@ -108,6 +108,12 @@ int main() {
 
 
     //TODO: Start psuedocode process to estimate size now that we have Ai and Ci sorted properly
+
+    std::vector<ACpair> S;
+    std::vector<ACpair> F;
+    S.reserve(K_VAL);
+    F.reserve(K_VAL);
+
 
     return 0;
 
