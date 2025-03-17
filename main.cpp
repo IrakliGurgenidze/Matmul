@@ -1,8 +1,10 @@
 #include <vector>
+#include <algorithm>
+#include <iostream>
+
 
 double EPSILON = 0.1;
 int K_VAL = (int) (9.0 / (EPSILON*EPSILON));
-double P_VAL = 1.0;
 
 struct R1Tuple {
   int a;
@@ -22,6 +24,8 @@ struct ACpair {
     double hashAC;
 };
 
+double p_val = 1.0;
+
 //TODO: pairwise hashing
 double hash(int x) {
   return x;
@@ -29,6 +33,70 @@ double hash(int x) {
 
 double hashAC(double h1a, double h2c){
     return h1a-h2c;
+}
+
+//TODO: Make combine return similar to psuedocode?
+void combine(std::vector<ACpair> &S, std::vector<ACpair> &F) {
+
+    // h(S) union h(F)
+    for(auto &x: F) S.push_back(x);
+    F.clear();
+
+    // No kth smallest val if size < k
+    if(S.size() < K_VAL) return;
+
+
+    // "RANK": split S with nth element func, lhs < k (at proper idx) < rhs
+    // psuedocode: gives us 'v'
+    std::nth_element(S.begin(), S.begin() + (K_VAL-1),S.end(),
+                     [](const ACpair &lhs, const ACpair &rhs) {
+        return lhs.hashAC < rhs.hashAC;
+    });
+
+    double thresh = (S.begin() + (K_VAL-1)) -> hashAC;
+
+    // x in S where h(x) <= v
+    auto mid = std::partition(S.begin(), S.end(),
+                         [&](auto &x){return x.hashAC <= thresh;}
+    );
+    S.erase(mid, S.end());
+
+    // if there are more than k items <= newp, keep exactly k
+    if ((int)S.size() > K_VAL) {
+        S.resize(K_VAL);
+    }
+
+    p_val = thresh;
+}
+
+void pointerSweep(
+    const std::vector<R1Tuple> &A,
+    const std::vector<R2Tuple> &C,
+    double &p,              // threshold
+    int k,
+    std::vector<ACpair> &S, // global set of k smallest so far
+    std::vector<ACpair> &F  // buffer that fills up to k
+){
+
+  int s_bar = 1;
+  for(int t = 0; t < C.size(); t++) {
+     while(hashAC(A[s_bar].h1a, C[t].h2c) > hashAC(A[(s_bar-1) % A.size()].h1a, C[t].h2c)){
+       s_bar = (s_bar + 1) % A.size();
+     }
+     int s = s_bar;
+     while(hashAC(A[s].h1a, C[t].h2c) < p){
+       double h1 = hashAC(A[s].h1a, C[t].h2c);
+       F.push_back({A[s].a, C[t].c, h1});
+       if(F.size() == K_VAL) {
+         combine(S, F);
+         F.clear();
+       }
+       s = (s + 1) % A.size();
+     }
+
+
+     // {{b, {a,b,h(a)}}
+   }
 }
 
 int main() {
@@ -114,41 +182,32 @@ int main() {
     S.reserve(K_VAL);
     F.reserve(K_VAL);
 
+    int i = 0, j = 0;
+    while (i < (int)Ai.size() && j < (int)Ci.size()) {
+        int b1 = Ai[i].first;
+        int b2 = Ci[j].first;
+        if (b1 == b2) {
+            pointerSweep(Ai[i].second, Ci[j].second, p_val, K_VAL, S, F);
+            i++;
+            j++;
+        } else if (b1 < b2) {
+            i++;
+        } else {
+            j++;
+        }
+    }
+
+    combine(S,F);
+
+    // If S.size() == k, final estimate is k / p
+    if ((int)S.size() == K_VAL) {
+        double estimate = (double)K_VAL/p_val;
+        std::cout << "Estimated join size: " << estimate << "\n";
+    } else {
+        // If we never filled S to k, the algorithm says z <= k^2
+        std::cout << "Join size <= " << (K_VAL * (long long)K_VAL) << "\n";
+    }
 
     return 0;
 
-}
-
-//TODO: Make combine return similar to psuedocode?
-void combine(std::vector<ACpair> &S, std::vector<ACpair> &F) {
-
-    // h(S) union h(F)
-    for(auto &x: F) S.push_back(x);
-    F.clear();
-
-    // No kth smallest val if size < k
-    if(S.size() < K_VAL) return;
-
-
-    // "RANK": split S with nth element func, lhs < k (at proper idx) < rhs
-    // psuedocode: gives us 'v'
-    std::nth_element(S.begin(), S.begin() + (K_VAL-1),S.end(),
-                     [](const ACpair &lhs, const ACpair &rhs) {
-        return lhs.hashAC < rhs.hashAC;
-    });
-
-    double thresh = (S.begin() + (K_VAL-1)) -> hashAC;
-
-    // x in S where h(x) <= v
-    auto mid = std::partition(S.begin(), S.end(),
-                         [&](auto &x){return x.hashAC <= thresh;}
-    );
-    S.erase(mid, S.end());
-
-    // if there are more than k items <= newp, keep exactly k
-    if ((int)S.size() > K_VAL) {
-        S.resize(K_VAL);
-    }
-
-    P_VAL = thresh;
 }
