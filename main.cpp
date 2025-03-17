@@ -1,6 +1,9 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <cmath>
+#include <cstdint>
+#include <random>
 
 
 double EPSILON = 0.1;
@@ -26,13 +29,28 @@ struct ACpair {
 
 double p_val = 1.0;
 
+const uint64_t PRIME = 4294967311ULL;
+
+uint64_t a1,b1,a2,b2;
+
+void initPairwiseHashes(){
+    std::random_device rd;
+    std::mt19937_64 gen((rd()));
+    std::uniform_int_distribution<uint64_t> dis(1, PRIME-1);
+    a1 = dis(gen);
+    b1 = dis(gen);
+    a2 = dis(gen);
+    b2 = dis(gen);
+}
+
 //TODO: pairwise hashing
-double hash(int x) {
-  return x;
+double hash(int x, uint64_t a, uint64_t b) {
+  uint64_t hash_val = (a * static_cast<uint64_t>(x) + b) % PRIME;
+  return static_cast<double> (hash_val) / static_cast<double> (PRIME);
 }
 
 double hashAC(double h1a, double h2c){
-    return h1a-h2c;
+    return (h1a-h2c) - floor(h1a-h2c);
 }
 
 //TODO: Make combine return similar to psuedocode?
@@ -93,10 +111,7 @@ void pointerSweep(
        }
        s = (s + 1) % A.size();
      }
-
-
-     // {{b, {a,b,h(a)}}
-   }
+  }
 }
 
 int main() {
@@ -107,11 +122,13 @@ int main() {
     std::vector<R1Tuple> R1Tuples;
     std::vector<R2Tuple> R2Tuples;
 
+    initPairwiseHashes();
+
     // R1 -> (a,b,h1(a))
     for (int a = 0; a < R1.size(); a++) {
         for (int b = 0; b < R1[a].size(); b++) {
           if(R1[a][b] == 1) {
-            double hashVal = hash(a);
+            double hashVal = hash(a, a1, b1);
             R1Tuples.push_back({a, b, hashVal});
           }
         }
@@ -121,7 +138,7 @@ int main() {
     for (int b = 0; b < R2.size(); b++) {
         for (int c = 0; c < R2[b].size(); c++) {
           if(R2[b][c] == 1) {
-            double hashVal = hash(c);
+            double hashVal = hash(c, a2, b2);
             R2Tuples.push_back({b, c, hashVal});
           }
         }
