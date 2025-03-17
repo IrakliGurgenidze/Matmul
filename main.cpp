@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
-#include <cstdint>
 #include <random>
 
 
@@ -96,10 +95,10 @@ void pointerSweep(
     std::vector<ACpair> &F  // buffer that fills up to k
 ){
 
-  int s_bar = 1;
+  int s_bar = 0;
   for(int t = 0; t < C.size(); t++) {
      while(hashAC(A[s_bar].h1a, C[t].h2c) > hashAC(A[(s_bar-1) % A.size()].h1a, C[t].h2c)){
-       s_bar = (s_bar + 1) % A.size();
+       s_bar = ((s_bar-1) + A.size()) % A.size();
      }
      int s = s_bar;
      while(hashAC(A[s].h1a, C[t].h2c) < p){
@@ -107,17 +106,42 @@ void pointerSweep(
        F.push_back({A[s].a, C[t].c, h1});
        if(F.size() == K_VAL) {
          combine(S, F);
-         F.clear();
+         p = p_val;
        }
        s = (s + 1) % A.size();
+       if(s == s_bar) break;
      }
   }
 }
 
 int main() {
 
-    std::vector<std::vector<int> > R1 = {{1, 0, 0}, {1, 1, 0}, {0, 0, 1}};
-    std::vector<std::vector<int> > R2 = {{0, 1, 0}, {1, 0, 1}, {0, 0, 1}};
+    int n = 100;
+    double density = 0.1; // probability that an entry is 1
+
+    // Create two 100x100 matrices initialized with 0.
+    std::vector<std::vector<int>> R1(n, std::vector<int>(n, 0));
+    std::vector<std::vector<int>> R2(n, std::vector<int>(n, 0));
+
+    // Set up a random generator:
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::bernoulli_distribution d(density);  // each entry is 1 with probability 'density'
+
+    // Fill R1 randomly
+    for (int i = 0; i < n; i++){
+        for (int j = 0; j < n; j++){
+            R1[i][j] = d(gen) ? 1 : 0;
+        }
+    }
+
+    // Fill R2 randomly
+    for (int i = 0; i < n; i++){
+        for (int j = 0; j < n; j++){
+            R2[i][j] = d(gen) ? 1 : 0;
+        }
+    }
+
 
     std::vector<R1Tuple> R1Tuples;
     std::vector<R2Tuple> R2Tuples;
