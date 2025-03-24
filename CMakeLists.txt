@@ -9,7 +9,13 @@ include_directories(include include/third_party)
 
 # Add source and test directories
 add_subdirectory(src)
-#add_subdirectory(tests)
+add_subdirectory(tests)
+
+# Enable testing support
+enable_testing()
 
 # Main executable
-add_executable(Matmul src/main.cpp include/third_party/MurmurHash3.cpp)
+add_executable(Matmul
+        src/main.cpp
+        include/third_party/MurmurHash3.cpp
+)
