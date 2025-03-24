@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <random>
-
+#include "MurmurHash3.h"
 
 double EPSILON = 0.1;
 int K_VAL = (int) (9.0 / (EPSILON*EPSILON));
@@ -30,23 +30,23 @@ double p_val = 1.0;
 
 const uint64_t PRIME = 4294967311ULL;
 
-uint64_t a1,b1,a2,b2;
+uint64_t murmurSeed1, murmurSeed2;
 
 void initPairwiseHashes(){
     std::random_device rd;
     std::mt19937_64 gen((rd()));
     std::uniform_int_distribution<uint64_t> dis(1, PRIME-1);
-    a1 = dis(gen);
-    b1 = dis(gen);
-    a2 = dis(gen);
-    b2 = dis(gen);
+    murmurSeed1 = dis(gen);
+    murmurSeed2 = dis(gen);
 }
 
 //TODO: pairwise hashing
-double hash(int x, uint64_t a, uint64_t b) {
-  uint64_t hash_val = (a * static_cast<uint64_t>(x) + b) % PRIME;
-  return static_cast<double> (hash_val) / static_cast<double> (PRIME);
+double murmur_hash(int x, uint64_t seed) {
+    uint32_t hash_val;
+    MurmurHash3_x86_32(&x, sizeof(x), seed, &hash_val);
+    return static_cast<double>(hash_val) / static_cast<double>(UINT32_MAX);
 }
+
 
 double hashAC(double h1a, double h2c){
     return (h1a-h2c) - floor(h1a-h2c);
@@ -152,7 +152,7 @@ int main() {
     for (int a = 0; a < R1.size(); a++) {
         for (int b = 0; b < R1[a].size(); b++) {
           if(R1[a][b] == 1) {
-            double hashVal = hash(a, a1, b1);
+            double hashVal = murmur_hash(a, murmurSeed1);
             R1Tuples.push_back({a, b, hashVal});
           }
         }
@@ -162,7 +162,7 @@ int main() {
     for (int b = 0; b < R2.size(); b++) {
         for (int c = 0; c < R2[b].size(); c++) {
           if(R2[b][c] == 1) {
-            double hashVal = hash(c, a2, b2);
+            double hashVal = murmur_hash(c, murmurSeed2);
             R2Tuples.push_back({b, c, hashVal});
           }
         }
