@@ -3,6 +3,12 @@
 #include <iostream>
 #include <cmath>
 #include <random>
+#include <stdexcept>
+#include <fstream>
+#include <sstream>
+#include <unordered_set>
+#include <unordered_map>
+
 #include "MurmurHash3.h"
 
 double EPSILON = 0.1;
@@ -10,6 +16,11 @@ int K_VAL = (int) (9.0 / (EPSILON*EPSILON));
 const uint64_t PRIME = 4294967311ULL;
 
 double p_val = 1.0;
+
+struct Coord {
+    int r;
+    int c;
+};
 
 struct R1Tuple {
   int a;
@@ -29,6 +40,67 @@ struct ACpair {
     double hashAC;
 };
 
+struct pair_hash {
+    std::size_t operator()(const std::pair<int, int>& p) const {
+        return std::hash<int>{}(p.first) ^ (std::hash<int>{}(p.second) << 1);
+    }
+};
+
+std::vector<Coord> readMtxAsCoordList(const std::string &filename, int &M, int &N) {
+    std::ifstream fin(filename);
+    if (!fin.is_open()) {
+        throw std::runtime_error("Could not open " + filename);
+    }
+
+    // Skip comment lines
+    std::string line;
+    while (true) {
+        if (!std::getline(fin, line)) {
+            throw std::runtime_error("Invalid file: no dimension line found.");
+        }
+        if (line.empty() || line[0] == '%') {
+            continue;
+        }
+
+        std::stringstream ss(line);
+        int nnz;
+        ss >> M >> N >> nnz;
+        if (ss.fail()) {
+            throw std::runtime_error("Couldn't parse M, N, nnz from " + line);
+        }
+
+        // Read nnz lines of "row col [value]"
+        std::vector<Coord> coords;
+        coords.reserve(nnz);
+
+        for (int i = 0; i < nnz; i++) {
+            if (!std::getline(fin, line)) {
+                throw std::runtime_error("File ended before reading all nonzeros.");
+            }
+            if (line.empty() || line[0] == '%') {
+                i--;
+                continue;
+            }
+            std::stringstream ssl(line);
+            int r, c;
+            double val;
+            ssl >> r >> c >> val;
+            if (ssl.fail()) {
+                throw std::runtime_error("Couldn't parse a nonzero line: " + line);
+            }
+
+            // 1-based => 0-based
+            r--;
+            c--;
+
+            if (val != 0.0) {
+                coords.push_back({r, c});
+            }
+        }
+        return coords;
+    }
+}
+
 uint64_t murmurSeed1, murmurSeed2;
 
 void initPairwiseHashes(){
@@ -47,7 +119,7 @@ double murmur_hash(int x, uint64_t seed) {
 
 
 double hashAC(double h1a, double h2c){
-    return (h1a-h2c) - floor(h1a-h2c);
+    return std::fmod(h1a * 0.618 + h2c * 0.382, 1.0);
 }
 
 
@@ -93,6 +165,7 @@ void pointerSweep(
     std::vector<ACpair> &F  // buffer that fills up to k
 ){
 
+
   int s_bar = 0;
   for(int t = 0; t < C.size(); t++) {
      while(hashAC(A[s_bar].h1a, C[t].h2c) > hashAC(A[(s_bar-1) % A.size()].h1a, C[t].h2c)){
@@ -104,6 +177,7 @@ void pointerSweep(
        F.push_back({A[s].a, C[t].c, h1});
        if(F.size() == K_VAL) {
          combine(S, F);
+
          p = p_val;
        }
        s = (s + 1) % A.size();
@@ -112,34 +186,43 @@ void pointerSweep(
   }
 }
 
+void groundTruthCalc(std::vector<Coord> r1, std::vector<Coord> r2) {
+    std::unordered_map<int, std::vector<int>> R1map;  // b -> all a's
+    std::unordered_map<int, std::vector<int>> R2map;  // b -> all c's
+
+    for (const auto &coord : r1) {
+        R1map[coord.c].push_back(coord.r);  // R1: (a, b)
+    }
+    for (const auto &coord : r2) {
+        R2map[coord.r].push_back(coord.c);  // R2: (b, c)
+    }
+
+    std::unordered_set<std::pair<int, int>, pair_hash> joinPairs;
+
+    for (const auto &[b, aList] : R1map) {
+        if (R2map.count(b)) {
+            for (int a : aList) {
+                for (int c : R2map[b]) {
+                    joinPairs.emplace(a, c);
+                }
+            }
+        }
+    }
+
+    std::cout << "Ground truth: " << joinPairs.size() << " join pairs\n";
+
+}
+
+
+
 int main() {
+    int M = 200;
+    int N = 200;
 
-    int n = 100;
-    double density = 0.1; // probability that an entry is 1
+    std::vector<Coord> R1 = readMtxAsCoordList("../data/bwm200.mtx", M, N);
+    std::vector<Coord> R2 = readMtxAsCoordList("../data/rdb200.mtx", M, N);
 
-    // Create two 100x100 matrices initialized with 0.
-    std::vector<std::vector<int>> R1(n, std::vector<int>(n, 0));
-    std::vector<std::vector<int>> R2(n, std::vector<int>(n, 0));
-
-    // Set up a random generator:
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::bernoulli_distribution d(density);  // each entry is 1 with probability 'density'
-
-    // Fill R1 randomly
-    for (int i = 0; i < n; i++){
-        for (int j = 0; j < n; j++){
-            R1[i][j] = d(gen) ? 1 : 0;
-        }
-    }
-
-    // Fill R2 randomly
-    for (int i = 0; i < n; i++){
-        for (int j = 0; j < n; j++){
-            R2[i][j] = d(gen) ? 1 : 0;
-        }
-    }
-
+    groundTruthCalc(R1, R2);
 
     std::vector<R1Tuple> R1Tuples;
     std::vector<R2Tuple> R2Tuples;
@@ -147,23 +230,19 @@ int main() {
     initPairwiseHashes();
 
     // R1 -> (a,b,h1(a))
-    for (int a = 0; a < R1.size(); a++) {
-        for (int b = 0; b < R1[a].size(); b++) {
-          if(R1[a][b] == 1) {
-            double hashVal = murmur_hash(a, murmurSeed1);
-            R1Tuples.push_back({a, b, hashVal});
-          }
-        }
+    for (auto &coord : R1) {
+        int a = coord.r;
+        int b = coord.c;
+        double hval = murmur_hash(a, murmurSeed1);
+        R1Tuples.push_back({a, b, hval});
     }
 
     //R2 -> (b,c,h2(c))
-    for (int b = 0; b < R2.size(); b++) {
-        for (int c = 0; c < R2[b].size(); c++) {
-          if(R2[b][c] == 1) {
-            double hashVal = murmur_hash(c, murmurSeed2);
-            R2Tuples.push_back({b, c, hashVal});
-          }
-        }
+    for (auto &coord : R2) {
+        int b = coord.r;
+        int c = coord.c;
+        double hval = murmur_hash(c, murmurSeed2);
+        R2Tuples.push_back({b, c, hval});
     }
 
 
@@ -191,7 +270,7 @@ int main() {
         }
 
         std::vector<R1Tuple> bGroup(R1Tuples.begin() + start, R1Tuples.begin() + end);
-        Ai.push_back({currB, bGroup});
+        Ai.emplace_back(currB, bGroup);
 
         start = end;
     }
@@ -208,7 +287,7 @@ int main() {
         }
 
         std::vector<R2Tuple> bGroup(R2Tuples.begin() + start, R2Tuples.begin() + end);
-        Ci.push_back({currB, bGroup});
+        Ci.emplace_back(currB, bGroup);
 
         start = end;
     }
