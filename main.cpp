@@ -7,6 +7,9 @@
 
 double EPSILON = 0.1;
 int K_VAL = (int) (9.0 / (EPSILON*EPSILON));
+const uint64_t PRIME = 4294967311ULL;
+
+double p_val = 1.0;
 
 struct R1Tuple {
   int a;
@@ -26,10 +29,6 @@ struct ACpair {
     double hashAC;
 };
 
-double p_val = 1.0;
-
-const uint64_t PRIME = 4294967311ULL;
-
 uint64_t murmurSeed1, murmurSeed2;
 
 void initPairwiseHashes(){
@@ -40,7 +39,6 @@ void initPairwiseHashes(){
     murmurSeed2 = dis(gen);
 }
 
-//TODO: pairwise hashing
 double murmur_hash(int x, uint64_t seed) {
     uint32_t hash_val;
     MurmurHash3_x86_32(&x, sizeof(x), seed, &hash_val);
@@ -52,7 +50,7 @@ double hashAC(double h1a, double h2c){
     return (h1a-h2c) - floor(h1a-h2c);
 }
 
-//TODO: Make combine return similar to psuedocode?
+
 void combine(std::vector<ACpair> &S, std::vector<ACpair> &F) {
 
     // h(S) union h(F)
@@ -214,9 +212,6 @@ int main() {
 
         start = end;
     }
-
-
-    //TODO: Start psuedocode process to estimate size now that we have Ai and Ci sorted properly
 
     std::vector<ACpair> S;
     std::vector<ACpair> F;
