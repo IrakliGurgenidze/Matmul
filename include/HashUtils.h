@@ -5,6 +5,8 @@
 #ifndef HASHUTILS_H
 #define HASHUTILS_H
 
+extern const uint64_t PRIME;
+
 // Initializes random seeds for hash functions used in estimation
 void initPairwiseHashes();
 

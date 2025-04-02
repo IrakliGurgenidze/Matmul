@@ -11,6 +11,9 @@ FetchContent_MakeAvailable(Catch2)
 # Add your test executable
 add_executable(tests
         test_main.cpp
+        test_HashUtils.cpp
+        ../src/HashUtils.cpp
+        ../include/external/MurmurHash3.cpp
         # test_cardinality.cpp  # Add your test source files here
 )
 
