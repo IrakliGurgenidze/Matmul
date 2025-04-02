@@ -39,7 +39,8 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
                          double &p,
                          int k,
                          std::vector<ACpair> &S,
-                         std::vector<ACpair> &F) {
+                         std::vector<ACpair> &F,
+                         std::unordered_set<std::pair<int,int>, pair_hash> &addedPairs) {
 
     int s_bar = 0;
     for (int t = 0; t < (int)C.size(); t++) {
@@ -49,7 +50,11 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
         int s = s_bar;
         while (hashAC(A[s].h1a, C[t].h2c) < p) {
             double h = hashAC(A[s].h1a, C[t].h2c);
-            F.push_back({A[s].a, C[t].c, h});
+            std::pair<int,int> key(A[s].h1a, C[t].h2c);
+            if (addedPairs.find(key) == addedPairs.end()) {
+                addedPairs.insert(key);
+                F.push_back({A[s].a, C[t].c, h});
+            }
             if ((int)F.size() == k) {
                 combine(S, F);
                 p = p_val;
@@ -106,10 +111,12 @@ double estimateProductSize(const std::vector<R1Tuple>& R1Tuples,
     S.reserve(K_VAL);
     F.reserve(K_VAL);
 
+    std::unordered_set<std::pair<int,int>, pair_hash> addedPairs;
+
     size_t i = 0, j = 0;
     while (i < Ai.size() && j < Ci.size()) {
         if (Ai[i].first == Ci[j].first) {
-            pointerSweep(Ai[i].second, Ci[j].second, p_val, K_VAL, S, F);
+            pointerSweep(Ai[i].second, Ci[j].second, p_val, K_VAL, S, F, addedPairs);
             i++; j++;
         } else if (Ai[i].first < Ci[j].first) {
             i++;
@@ -120,9 +127,8 @@ double estimateProductSize(const std::vector<R1Tuple>& R1Tuples,
 
     combine(S, F);
 
-    if ((int)S.size() == K_VAL) {
+    if (static_cast<int>(S.size()) == K_VAL) {
         return static_cast<double>(K_VAL) / p_val;
-    } else {
-        return static_cast<double>(K_VAL) * K_VAL;
     }
+    return static_cast<double>(K_VAL) * K_VAL;
 }

@@ -24,6 +24,8 @@ add_executable(tests
         TestMatrixUtils.cpp
         TestCoordListMatrix.cpp
         ../src/CoordListMatrix.cpp
+        test_Estimator.cpp
+        ../src/Estimator.cpp
         # test_cardinality.cpp  # Add your test source files here
 )
 
