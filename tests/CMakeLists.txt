@@ -22,6 +22,8 @@ add_executable(tests
         ../src/HashUtils.cpp
         ../include/external/MurmurHash3.cpp
         TestMatrixUtils.cpp
+        test_CoordListMatrix.cpp
+        ../src/CoordListMatrix.cpp
         # test_cardinality.cpp  # Add your test source files here
 )
 
