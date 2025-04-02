@@ -1,4 +1,5 @@
 #include <vector>
+#include <string>
 #include "Types.h"
 
 #ifndef COORDLISTMATRIX_H
