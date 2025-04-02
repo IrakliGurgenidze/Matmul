@@ -1,11 +1,10 @@
 #include "../include/HashUtils.h"
-#include "../include/Types.h"
 #include "../include/external/MurmurHash3.h"
 #include <random>
 #include <cmath>
 
 // Prime for generating random seeds
-const uint64_t PRIME = 4294967311ULL;
+constexpr uint64_t PRIME = 4294967311ULL;
 
 // Global hash seeds
 uint64_t murmurSeed1 = 0;
