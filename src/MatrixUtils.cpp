@@ -1,3 +1,5 @@
+#include <unordered_map>
+#include <iostream>
 #include "MatrixUtils.h"
 
 void groundTruthCalc(std::vector<Coord> r1, std::vector<Coord> r2) {

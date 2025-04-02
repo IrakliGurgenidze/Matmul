@@ -1,4 +1,5 @@
 #include <vector>
+#include "Types.h"
 
 #ifndef MATRIXUTILS_H
 #define MATRIXUTILS_H

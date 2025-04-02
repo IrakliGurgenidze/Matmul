@@ -1,7 +1,3 @@
-//
-// Public interface for estimated product size.
-//
-
 #pragma once
 
 #include <vector>

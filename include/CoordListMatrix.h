@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <string>
 #include "Types.h"
@@ -14,4 +16,5 @@ class CoordListMatrix{
     std::vector<Coord> coords;
 
 };
+
 #endif //COORDLISTMATRIX_H

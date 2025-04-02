@@ -1,10 +1,9 @@
-
-#ifndef HASHUTILS_H
-#define HASHUTILS_H
-
 #pragma once
 
 #include <cstdint>
+
+#ifndef HASHUTILS_H
+#define HASHUTILS_H
 
 // Initializes random seeds for hash functions used in estimation
 void initPairwiseHashes();
