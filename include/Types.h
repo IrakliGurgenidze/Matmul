@@ -7,7 +7,13 @@
 #define TYPES_H
 
 // Represents a nonzero coordinate in a sparse matrix (row, column)
-struct Coord { int row, col; };
+struct Coord {
+    int row, col;
+
+    bool operator==(const Coord& other) const {
+        return row == other.row && col == other.col;
+    }
+};
 
 // A tuple from relation R1 with a = row, b = join key, and precomputed hash of 'a'
 struct R1Tuple { int a, b; double h1a; };

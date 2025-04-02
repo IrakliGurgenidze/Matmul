@@ -1,14 +1,10 @@
 #include <unordered_map>
+#include <random>
+#include <stdexcept>
+
 #include "MatrixUtils.h"
 
-/*
- * Computes the ground-truth number of non-zero elements in the product of two matrices, given
- * their non-zero coordinates.
- *
- * @param r1: vector of non-zero Coords in first matrix
- * @param r2: vector of non-zero Coords in second matrix
- * @return: the number of non-zero elements in the product vector
- */
+
 int groundTruthCalc(const std::vector<Coord>& r1, const std::vector<Coord>& r2) {
     std::unordered_map<int, std::vector<int>> R1map;  // b -> all a's
     std::unordered_map<int, std::vector<int>> R2map;  // b -> all c's
@@ -30,4 +26,31 @@ int groundTruthCalc(const std::vector<Coord>& r1, const std::vector<Coord>& r2) 
     }
 
     return static_cast<int>(joinPairs.size());
+}
+
+std::vector<Coord> generateSparseMatrix(double sparseDegree, int numRows, int numCols, int randomSeed) {
+    if (sparseDegree <= 0.0 || sparseDegree > 1.0) {
+        throw std::invalid_argument("sparseDegree must be in the range (0.0, 1.0]");
+    }
+
+    int totalElements = numRows * numCols;
+    int targetNonzeros = static_cast<int>(totalElements * sparseDegree);
+
+    std::mt19937 rng(randomSeed);
+    std::uniform_int_distribution<int> rowDist(0, numRows - 1);
+    std::uniform_int_distribution<int> colDist(0, numCols - 1);
+
+    std::unordered_set<std::pair<int, int>, pair_hash> uniqueCoords;
+    std::vector<Coord> result;
+
+    while (static_cast<int>(uniqueCoords.size()) < targetNonzeros) {
+        int r = rowDist(rng);
+        int c = colDist(rng);
+        std::pair<int, int> pos = {r, c};
+        if (uniqueCoords.insert(pos).second) {
+            result.push_back({r, c});
+        }
+    }
+
+    return result;
 }
