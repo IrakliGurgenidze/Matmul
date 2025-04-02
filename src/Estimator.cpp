@@ -44,18 +44,20 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
 
     int s_bar = 0;
     for (int t = 0; t < (int)C.size(); t++) {
-        while (hashAC(A[s_bar].h1a, C[t].h2c) > hashAC(A[(s_bar - 1 + A.size()) % A.size()].h1a, C[t].h2c)) {
-            s_bar = (s_bar - 1 + A.size()) % A.size();
+        if (A.size() > 1) {
+            while (hashAC(A[s_bar].h1a, C[t].h2c) < hashAC(A[(s_bar - 1 + A.size()) % A.size()].h1a, C[t].h2c)) {
+                s_bar = (s_bar - 1 + A.size()) % A.size();
+            }
         }
         int s = s_bar;
         while (hashAC(A[s].h1a, C[t].h2c) < p) {
             double h = hashAC(A[s].h1a, C[t].h2c);
-            std::pair<int,int> key(A[s].h1a, C[t].h2c);
+            std::pair<int,int> key(A[s].a, C[t].c);
             if (addedPairs.find(key) == addedPairs.end()) {
                 addedPairs.insert(key);
                 F.push_back({A[s].a, C[t].c, h});
             }
-            if ((int)F.size() == k) {
+            if (static_cast<int>(F.size()) == k) {
                 combine(S, F);
                 p = p_val;
             }
@@ -72,7 +74,7 @@ double estimateProductSize(const std::vector<R1Tuple>& R1Tuples,
                            const std::vector<R2Tuple>& R2Tuples,
                            double epsilon) {
     initPairwiseHashes();
-    K_VAL = static_cast<int>(9.0 / (epsilon * epsilon));
+    K_VAL = static_cast<int>(std::ceil(9.0 / (epsilon * epsilon)));
     p_val = 1.0;
 
     // Sort R1 and R2 by join key (b), then by hash value
