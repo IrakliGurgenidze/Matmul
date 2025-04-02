@@ -21,13 +21,13 @@ int main() {
     // Convert Coord -> R1Tuple
     std::vector<R1Tuple> R1Tuples;
     for (const auto& coord : coords1) {
-        R1Tuples.push_back({coord.r, coord.c, murmur_hash(coord.r, murmurSeed1)});
+        R1Tuples.push_back({coord.row, coord.col, murmur_hash(coord.row, murmurSeed1)});
     }
 
     // Convert Coord -> R2Tuple
     std::vector<R2Tuple> R2Tuples;
     for (const auto& coord : coords2) {
-        R2Tuples.push_back({coord.r, coord.c, murmur_hash(coord.c, murmurSeed2)});
+        R2Tuples.push_back({coord.row, coord.col, murmur_hash(coord.col, murmurSeed2)});
     }
 
     // Estimate join-project size
