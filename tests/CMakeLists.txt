@@ -8,14 +8,22 @@ FetchContent_Declare(
 # Make Catch2 available
 FetchContent_MakeAvailable(Catch2)
 
+add_library(matrix_utils
+        ../src/MatrixUtils.cpp
+        ../src/Types.cpp
+)
+
+target_include_directories(matrix_utils PUBLIC include)
+
 # Add your test executable
 add_executable(tests
         test_main.cpp
+        TestMatrixUtils.cpp
         # test_cardinality.cpp  # Add your test source files here
 )
 
 # Link Catch2 to your test executable
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(tests PRIVATE matrix_utils Catch2::Catch2WithMain)
 
 # Register tests with CTest
 include(CTest)

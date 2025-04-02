@@ -4,6 +4,6 @@
 #ifndef MATRIXUTILS_H
 #define MATRIXUTILS_H
 
-void groundTruthCalc(std::vector<Coord> r1, std::vector<Coord> r2);
+int groundTruthCalc(const std::vector<Coord>& r1, const std::vector<Coord>& r2);
 
 #endif //MATRIXUTILS_H
