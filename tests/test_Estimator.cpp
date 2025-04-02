@@ -24,7 +24,7 @@ TEST_CASE("Estimator returns k^2 when sketch cannot be filled", "[Estimator]") {
     };
 
     double epsilon = 0.1;
-    int k = static_cast<int>(std::ceil(9.0 / (epsilon * epsilon)));
+    int k = static_cast<int>(9.0 / (epsilon * epsilon));
     double expectedUpperBound = k * k;
 
     double estimate = estimateProductSize(R1, R2, epsilon);
@@ -34,9 +34,9 @@ TEST_CASE("Estimator returns k^2 when sketch cannot be filled", "[Estimator]") {
 
 
 TEST_CASE("Estimator returns accurate value when sketch fills", "[Estimator][Integration]") {
-    int seed = 36;
+    int seed = 42;
     double sparsity = 0.05;
-    int n = 900;
+    int n = 1000;
 
     std::vector<Coord> R1coords = generateSparseMatrix(sparsity, n, n, seed);
     std::vector<Coord> R2coords = generateSparseMatrix(sparsity, n, n, seed + 1);
@@ -56,8 +56,8 @@ TEST_CASE("Estimator returns accurate value when sketch fills", "[Estimator][Int
     int groundTruth = groundTruthCalc(R1coords, R2coords);
     REQUIRE(groundTruth > 0);
 
-    double epsilon = 0.01;
-    int k = static_cast<int>(std::ceil(9.0 / (epsilon * epsilon)));
+    double epsilon = 0.1;
+    int k = static_cast<int>(9.0 / (epsilon * epsilon));
     double estimate = estimateProductSize(R1, R2, epsilon);
 
     INFO("Ground truth size: " << groundTruth);

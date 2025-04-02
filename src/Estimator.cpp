@@ -12,7 +12,7 @@ static void combine(std::vector<ACpair> &S, std::vector<ACpair> &F) {
     S.insert(S.end(), F.begin(), F.end());
     F.clear();
 
-    if ((int)S.size() < K_VAL) return;
+    if ((int)S.size() <= K_VAL) return;
 
     std::nth_element(S.begin(), S.begin() + (K_VAL - 1), S.end(),
                      [](const ACpair &lhs, const ACpair &rhs) {
@@ -44,10 +44,8 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
 
     int s_bar = 0;
     for (int t = 0; t < (int)C.size(); t++) {
-        if (A.size() > 1) {
-            while (hashAC(A[s_bar].h1a, C[t].h2c) < hashAC(A[(s_bar - 1 + A.size()) % A.size()].h1a, C[t].h2c)) {
-                s_bar = (s_bar - 1 + A.size()) % A.size();
-            }
+        while (hashAC(A[s_bar].h1a, C[t].h2c) < hashAC(A[(s_bar - 1 + A.size()) % A.size()].h1a, C[t].h2c)) {
+            s_bar = (s_bar - 1 + A.size()) % A.size();
         }
         int s = s_bar;
         int start = s;
@@ -58,6 +56,10 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
                 addedPairs.insert(key);
                 F.push_back({A[s].a, C[t].c, h});
             }
+            // if (F.size() > K_VAL) {
+            //     combine(S, F);
+            //     F.clear();
+            // }
             s = (s + 1) % A.size();
         }
         while (s != start && hashAC(A[s].h1a, C[t].h2c) < p);
@@ -71,8 +73,7 @@ double estimateProductSize(const std::vector<R1Tuple>& R1Tuples,
                            const std::vector<R2Tuple>& R2Tuples,
                            double epsilon) {
     initPairwiseHashes();
-    K_VAL = static_cast<int>(std::ceil(9.0 / (epsilon * epsilon)));
-    p_val = 1.0;
+    K_VAL = static_cast<int>(9.0 / (epsilon * epsilon));
 
     // Sort R1 and R2 by join key (b), then by hash value
     std::vector<R1Tuple> R1 = R1Tuples;
@@ -105,6 +106,16 @@ double estimateProductSize(const std::vector<R1Tuple>& R1Tuples,
         Ci.emplace_back(currB, std::vector<R2Tuple>(R2.begin() + i, R2.begin() + j));
         i = j;
     }
+
+    // Finding initial p value for O(n)
+    // int maxProduct = 0;
+    // for (size_t i = 0; i < Ai.size(); i++) {
+    //     int product = static_cast<int>(Ai[i].second.size() * Ci[i].second.size());
+    //     if (product > maxProduct) {
+    //         maxProduct = product;
+    //     }
+    // }
+    // p_val = std::min(1.0 / K_VAL, static_cast<double>(K_VAL) / maxProduct);
 
     std::vector<ACpair> S, F;
     S.reserve(K_VAL);
