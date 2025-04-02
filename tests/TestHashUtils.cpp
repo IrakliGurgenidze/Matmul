@@ -27,9 +27,12 @@ TEST_CASE("hashAC combines h1(a) and h2(c) correctly", "[HashUtils]")
     REQUIRE(comb3 >= 0.0);
     REQUIRE(comb3 <= 1.0);
 
-    // Check for variety and that results differ with inputs
-    REQUIRE(hashAC(0.0, 1.0) != hashAC(0.0, 0.0));
-    REQUIRE(hashAC(0.5, 0.5) != hashAC(0.4, 0.4));
+    // Check for variety and that results differ with inputs [0,1)
+    REQUIRE(hashAC(0.0, 0.7) != hashAC(0.0, 0.0));
+    REQUIRE(hashAC(0.5, 0.5) == hashAC(0.4, 0.4));
+    REQUIRE(hashAC(0.5, 0.5) == hashAC(0.5, 0.5));
+    REQUIRE(hashAC(0.6, 0.5) != hashAC(0.5, 0.6));
+
 }
 
 TEST_CASE("murmur_hash returns values in [0, 1]", "[HashUtils]")

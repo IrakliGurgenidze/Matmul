@@ -34,9 +34,9 @@ TEST_CASE("Estimator returns k^2 when sketch cannot be filled", "[Estimator]") {
 
 
 TEST_CASE("Estimator returns accurate value when sketch fills", "[Estimator][Integration]") {
-    int seed = 42;
+    int seed = 36;
     double sparsity = 0.05;
-    int n = 1000;
+    int n = 900;
 
     std::vector<Coord> R1coords = generateSparseMatrix(sparsity, n, n, seed);
     std::vector<Coord> R2coords = generateSparseMatrix(sparsity, n, n, seed + 1);
@@ -45,18 +45,18 @@ TEST_CASE("Estimator returns accurate value when sketch fills", "[Estimator][Int
 
     std::vector<R1Tuple> R1;
     for (const auto& [a, b] : R1coords) {
-        R1.push_back({a, b, 0.0});  // hash not needed directly
+        R1.push_back({a, b, murmur_hash(a, murmurSeed1)});
     }
 
     std::vector<R2Tuple> R2;
     for (const auto& [b, c] : R2coords) {
-        R2.push_back({b, c, 0.0});
+        R2.push_back({b, c, murmur_hash(c, murmurSeed2)});
     }
 
     int groundTruth = groundTruthCalc(R1coords, R2coords);
     REQUIRE(groundTruth > 0);
 
-    double epsilon = 0.1;
+    double epsilon = 0.01;
     int k = static_cast<int>(std::ceil(9.0 / (epsilon * epsilon)));
     double estimate = estimateProductSize(R1, R2, epsilon);
 

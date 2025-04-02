@@ -28,5 +28,7 @@ double murmur_hash(int x, uint64_t seed) {
 
 // Combines h1(a) and h2(c) into a single hash value in [0, 1]
 double hashAC(double h1a, double h2c) {
-    double diff = h1a - h2c; if (diff < 0) diff += 1.0; return diff;
+    double diff = h1a - h2c;
+    if (diff < 0) diff += 1.0;
+    return diff;
 }

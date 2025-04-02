@@ -50,20 +50,17 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
             }
         }
         int s = s_bar;
-        while (hashAC(A[s].h1a, C[t].h2c) < p) {
+        int start = s;
+        do {
             double h = hashAC(A[s].h1a, C[t].h2c);
             std::pair<int,int> key(A[s].a, C[t].c);
             if (addedPairs.find(key) == addedPairs.end()) {
                 addedPairs.insert(key);
                 F.push_back({A[s].a, C[t].c, h});
             }
-            if (static_cast<int>(F.size()) == k) {
-                combine(S, F);
-                p = p_val;
-            }
             s = (s + 1) % A.size();
-            if (s == s_bar) break;
         }
+        while (s != start && hashAC(A[s].h1a, C[t].h2c) < p);
     }
 }
 
