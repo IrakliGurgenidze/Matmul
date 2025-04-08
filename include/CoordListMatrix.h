@@ -42,13 +42,14 @@ class CoordListMatrix{
      *
      * Throws std::invalid_argument on matrix dimension mismatch.
      */
-    CoordListMatrix matmul(CoordListMatrix &right);
+    CoordListMatrix matmul(const CoordListMatrix &right);
 
     /**
      * @brief Returns the shape (numRows, numCols) of the matrix.
      * @return std::pair<int, int> representing (rows, cols)
      */
     [[nodiscard]] std::pair<int, int> shape() const;
+
 
   private:
     std::vector<Coord> coords;

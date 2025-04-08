@@ -62,8 +62,53 @@ std::vector<Coord>& CoordListMatrix::getCoords() {
     return coords;
 }
 
-CoordListMatrix CoordListMatrix::matmul(CoordListMatrix &right) {
-    return CoordListMatrix("");
+CoordListMatrix CoordListMatrix::matmul(const CoordListMatrix &right) {
+    // Check for matrix dimension mismatch
+    auto [rowsA, colsA] = this->shape();
+    auto [rowsB, colsB] = right.shape();
+    if (colsA != rowsB) {
+        throw std::invalid_argument("matmul dimension mismatch: "
+                                    "Left cols (" + std::to_string(colsA) + ") != Right rows (" + std::to_string(rowsB) + ")");
+    }
+
+    // Build row-based adjacency
+    std::vector<std::vector<int>> rowA(rowsA);
+    std::vector<std::vector<int>> rowB(rowsB);
+
+    for(auto &c: coords){
+        rowA[c.row].push_back(c.col);
+    }
+
+    for(auto &c: right.coords){
+        rowB[c.row].push_back(c.col);
+    }
+
+    std::vector<std::unordered_set<int>> resSets(rowsA);
+
+    for(int i = 0; i < rowA.size(); i++) {
+        for (int j: rowA[i]) {
+            if (j >= 0 && j < rowsB) {
+                for (int k: rowB[j]) {
+                    resSets[i].insert(k);
+                }
+            }
+        }
+    }
+
+    std::vector<Coord> resultCoords;
+    resultCoords.reserve(colsA);
+    for (int i = 0; i < rowsA; i++) {
+        for (int k : resSets[i]) {
+            resultCoords.push_back({i, k});
+        }
+    }
+
+    CoordListMatrix outMatrix = *this;
+    outMatrix.coords = std::move(resultCoords);
+    outMatrix.M = rowsA;
+    outMatrix.N = colsB;
+
+    return outMatrix;
 }
 
 std::pair<int, int> CoordListMatrix::shape() const {
