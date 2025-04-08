@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 
-CoordListMatrix::CoordListMatrix(const std::string &filename, int &M, int &N) {
+CoordListMatrix::CoordListMatrix(const std::string &filename) : M(0), N(0){
     std::ifstream fin(filename);
     if (!fin.is_open()) {
         throw std::runtime_error("Could not open " + filename);
@@ -20,7 +20,7 @@ CoordListMatrix::CoordListMatrix(const std::string &filename, int &M, int &N) {
 
         std::stringstream ss(line);
         int nnz;
-        ss >> M >> N >> nnz;
+        ss >> this->M >> this->N >> nnz;
         if (ss.fail()) {
             throw std::runtime_error("Couldn't parse M, N, nnz from " + line);
         }
@@ -60,4 +60,12 @@ CoordListMatrix::CoordListMatrix(const std::string &filename, int &M, int &N) {
 
 std::vector<Coord>& CoordListMatrix::getCoords() {
     return coords;
+}
+
+CoordListMatrix CoordListMatrix::matmul(CoordListMatrix &right) {
+    return CoordListMatrix("");
+}
+
+std::pair<int, int> CoordListMatrix::shape() const {
+    return {this->M, this->N};
 }
