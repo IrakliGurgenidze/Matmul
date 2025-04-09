@@ -7,7 +7,6 @@
 static double p_val = 1.0;
 static int K_VAL = 0;  // Will be set in estimateProductSize
 
-// Combines current sketch S with buffer F, keeping k smallest hashAC values
 static void combine(std::vector<ACpair> &S, std::vector<ACpair> &F) {
     S.insert(S.end(), F.begin(), F.end());
     F.clear();
@@ -66,24 +65,20 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
     }
 }
 
-// Main estimation function
-// Assumes input tuples are already hashed
-// Returns either k / p or an upper bound k^2 if sketch was not filled
-double estimateProductSize(const std::vector<R1Tuple>& R1Tuples,
-                           const std::vector<R2Tuple>& R2Tuples,
+
+double estimateProductSize(std::vector<R1Tuple> &R1,
+                           std::vector<R2Tuple> &R2,
                            double epsilon) {
-    initPairwiseHashes();
+
     K_VAL = static_cast<int>(9.0 / (epsilon * epsilon));
+    initPairwiseHashes();
 
     // Sort R1 and R2 by join key (b), then by hash value
-    std::vector<R1Tuple> R1 = R1Tuples;
-    std::vector<R2Tuple> R2 = R2Tuples;
-
-    std::sort(R1.begin(), R1.end(), [](const R1Tuple &lhs, const R1Tuple &rhs) {
+    std::ranges::sort(R1, [](const R1Tuple &lhs, const R1Tuple &rhs) {
         return lhs.b != rhs.b ? lhs.b < rhs.b : lhs.h1a < rhs.h1a;
     });
 
-    std::sort(R2.begin(), R2.end(), [](const R2Tuple &lhs, const R2Tuple &rhs) {
+    std::ranges::sort(R2, [](const R2Tuple &lhs, const R2Tuple &rhs) {
         return lhs.b != rhs.b ? lhs.b < rhs.b : lhs.h2c < rhs.h2c;
     });
 
@@ -107,6 +102,7 @@ double estimateProductSize(const std::vector<R1Tuple>& R1Tuples,
         i = j;
     }
 
+    /*
     // Finding initial p value for O(n)
     // int maxProduct = 0;
     // for (size_t i = 0; i < Ai.size(); i++) {
@@ -116,6 +112,7 @@ double estimateProductSize(const std::vector<R1Tuple>& R1Tuples,
     //     }
     // }
     // p_val = std::min(1.0 / K_VAL, static_cast<double>(K_VAL) / maxProduct);
+    */
 
     std::vector<ACpair> S, F;
     S.reserve(K_VAL);

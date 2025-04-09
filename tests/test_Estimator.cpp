@@ -39,17 +39,17 @@ TEST_CASE("Estimator returns accurate value when sketch fills", "[Estimator][Int
     int n = 1000;
 
     std::vector<Coord> R1coords = generateSparseMatrix(sparsity, n, n, seed);
-    std::vector<Coord> R2coords = generateSparseMatrix(sparsity, n, n, seed + 1);
+    std::vector<Coord> R2coords = generateSparseMatrix(sparsity, n, n, seed * 517);
 
     initPairwiseHashes();
 
     std::vector<R1Tuple> R1;
-    for (const auto& [a, b] : R1coords) {
+    for (auto& [a, b] : R1coords) {
         R1.push_back({a, b, murmur_hash(a, murmurSeed1)});
     }
 
     std::vector<R2Tuple> R2;
-    for (const auto& [b, c] : R2coords) {
+    for (auto& [b, c] : R2coords) {
         R2.push_back({b, c, murmur_hash(c, murmurSeed2)});
     }
 
