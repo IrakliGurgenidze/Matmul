@@ -64,8 +64,8 @@ CoordListMatrix::CoordListMatrix(const std::vector<Coord>& coords, int M, int N)
         throw std::invalid_argument("Matrix dimensions must be positive.");
     }
 
-    for (const auto& coord : coords) {
-        if (coord.row < 0 || coord.row >= M || coord.col < 0 || coord.col >= N) {
+    for (const auto&[row, col] : coords) {
+        if (row < 0 || row >= M || col < 0 || col >= N) {
             throw std::out_of_range("Coordinate is out of matrix bounds.");
         }
     }
@@ -75,7 +75,7 @@ std::vector<Coord>& CoordListMatrix::getCoords() {
     return coords;
 }
 
-CoordListMatrix CoordListMatrix::matmul(const CoordListMatrix &right) {
+CoordListMatrix CoordListMatrix::naiveMatmul(const CoordListMatrix &right) {
     if (this->N != right.M) {
         throw std::invalid_argument("Matrix dimensions do not align.");
     }

@@ -3,9 +3,8 @@
 #include <sstream>
 #include <algorithm>
 
-#include "Types.h"
-
-bool compareRowCol(const Coord& a, const Coord& b) {
+// Comparator for sorting coords by row then col
+static bool compareRowCol(const Coord& a, const Coord& b) {
     return a.row != b.row ? a.row < b.row : a.col < b.col;
 }
 
@@ -86,14 +85,66 @@ CSRMatrix::CSRMatrix(const std::string &filename) {
     }
 }
 
+CSRMatrix::CSRMatrix(const std::vector<Coord>& coords, int M, int N)
+    : M(M), N(N) {
+
+    if (M <= 0 || N <= 0) {
+        throw std::invalid_argument("Matrix dimensions must be positive.");
+    }
+
+    for (const auto&[row, col] : coords) {
+        if (row < 0 || row >= M || col < 0 || col >= N) {
+            throw std::out_of_range("Coordinate is out of matrix bounds.");
+        }
+    }
+
+    // Sort coords by (row, col) to ensure CSR canonical form
+    std::vector<Coord> sortedCoords = coords;
+    std::sort(sortedCoords.begin(), sortedCoords.end(),
+        [](const Coord& a, const Coord& b) {
+            return a.row != b.row ? a.row < b.row : a.col < b.col;
+        });
+
+    // Initialize rowPtr and colIdx
+    rowPtr.assign(M + 1, 0);
+    colIdx.resize(sortedCoords.size());
+
+    // Count non-zeros per row
+    for (const auto& [r, _] : sortedCoords) {
+        rowPtr[r + 1]++;
+    }
+
+    // Exclusive prefix sum to get rowPtr
+    for (int i = 0; i < M; ++i) {
+        rowPtr[i + 1] += rowPtr[i];
+    }
+
+    // Fill colIdx
+    std::vector<int> rowOffset = rowPtr;  // Copy for placement tracking
+    for (const auto& [r, c] : sortedCoords) {
+        colIdx[rowOffset[r]++] = c;
+    }
+}
+
+std::vector<Coord> CSRMatrix::getCoords() const {
+    std::vector<Coord> coords;
+
+    int rowPtrSize = static_cast<int>(rowPtr.size()) - 1;
+    for (int row=0; row < rowPtrSize; ++row) {
+        for (int i = rowPtr[row]; i < rowPtr[row + 1]; ++i) {
+            int col = colIdx[i];
+            coords.push_back({row, col});
+        }
+    }
+
+    return coords;
+}
+
+// TODO implement naiveMatmul
+CSRMatrix CSRMatrix::naiveMatmul(const CSRMatrix &right) {
+    return CSRMatrix(std::vector<Coord>{}, this->M, right.N);
+}
 
 std::pair<int, int> CSRMatrix::shape() const {
     return {this->M, this->N};
-}
-
-std::vector<int>& CSRMatrix::getRowPtr() {
-    return rowPtr;
-}
-std::vector<int>& CSRMatrix::getColIdx() {
-    return colIdx;
 }

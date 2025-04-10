@@ -1,6 +1,7 @@
 #include <unordered_map>
 #include <random>
 #include <stdexcept>
+#include <algorithm>
 
 #include "MatrixUtils.h"
 
@@ -51,6 +52,10 @@ std::vector<Coord> generateSparseMatrix(double sparseDegree, int numRows, int nu
             result.push_back({r, c});
         }
     }
+
+    std::sort(result.begin(), result.end(), [](const Coord& a, const Coord& b) {
+        return a.row != b.row ? a.row < b.row : a.col < b.col;
+    });
 
     return result;
 }

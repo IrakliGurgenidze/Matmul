@@ -77,8 +77,7 @@ TEST_CASE("CoordListMatrix constructor and getCoords", "[CoordListMatrix]") {
 
   // CHECK EVERY VALUE
   for (size_t i = 0; i < expectedCoords.size(); ++i) {
-    REQUIRE(actualCoords[i].row == expectedCoords[i].row);
-    REQUIRE(actualCoords[i].col == expectedCoords[i].col);
+      REQUIRE(actualCoords[i] == expectedCoords[i]);
   }
 }
 
@@ -130,7 +129,7 @@ TEST_CASE("CoordListMatrix naive matmul dimensions match", "[CoordListMatrix]") 
         const auto coordsB = generateSparseMatrix(sparsity, 10, N);
         CoordListMatrix B(coordsB, 10, N);
 
-        REQUIRE_THROWS_AS(A.matmul(B), std::invalid_argument);
+        REQUIRE_THROWS_AS(A.naiveMatmul(B), std::invalid_argument);
     }
 
     SECTION("Check result dimensions") {
@@ -145,12 +144,9 @@ TEST_CASE("CoordListMatrix naive matmul dimensions match", "[CoordListMatrix]") 
         const auto coordsB = generateSparseMatrix(sparsity, K, N);
         CoordListMatrix B(coordsB, K, N);
 
-        auto result = A.matmul(B);
+        auto result = A.naiveMatmul(B);
         REQUIRE(result.shape() == std::pair<int, int> (M, N));
     }
-
-
-
 }
 
 
@@ -169,7 +165,7 @@ TEST_CASE("CoordListMatrix matmul Trec4(2×3) vs Trec5(3×7)", "[CoordListMatrix
     CoordListMatrix B(fileT5); // shape = 3×7
 
     // Multiply A×B => shape 2×7
-    CoordListMatrix C = A.matmul(B);
+    CoordListMatrix C = A.naiveMatmul(B);
     auto [rowsC, colsC] = C.shape();
 
     REQUIRE(rowsC == 2);

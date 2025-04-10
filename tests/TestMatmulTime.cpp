@@ -18,7 +18,7 @@ void benchmark_matmul_naive(
     CoordListMatrix B(coordsB, K, N);
 
     const auto start = std::chrono::high_resolution_clock::now();
-    auto result = A.matmul(B);
+    auto result = A.naiveMatmul(B);
     const auto end = std::chrono::high_resolution_clock::now();
 
     const auto elapsed = std::chrono::duration<double>(end - start).count();

@@ -25,7 +25,7 @@ int groundTruthCalc(const std::vector<Coord>& r1, const std::vector<Coord>& r2);
  * @param numCols: Number of cols in the result
  * @param randomSeed Seed for randomly generating the matrix
  *
- * @return: A vector of Coords representing the non-zero positions
+ * @return: A vector of Coords representing the non-zero positions, sorted by increasing row then col.
  */
 std::vector<Coord> generateSparseMatrix(double sparseDegree, int numRows, int numCols, int randomSeed=42);
 

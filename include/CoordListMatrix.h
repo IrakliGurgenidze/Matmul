@@ -1,18 +1,13 @@
-#pragma once
+#ifndef COORDLISTMATRIX_H
+#define COORDLISTMATRIX_H
 
 #include <vector>
 #include <string>
 #include "Types.h"
 
-#ifndef COORDLISTMATRIX_H
-#define COORDLISTMATRIX_H
-
-
 /**
  * @class CoordListMatrix
- * @brief Stores a sparse matrix as a list of non-zero (row, col) coordinates.
- *
- * Provides a simple coordinate list (COO) representation for use in sparse matrix operations.
+ * @brief Stores a sparse matrix as a vector of non-zero (row, col) coordinates.
  */
 class CoordListMatrix{
   public:
@@ -21,29 +16,29 @@ class CoordListMatrix{
      * @brief Loads non-zero entries from a Matrix Market (.mtx) file.
      *
      * Ignores zero entries and comment lines. Uses 0-based indexing.
-     * Throws std::runtime_error on file or parse errors.
+     * @throws std::runtime_error on file or parse errors.
      */
     explicit CoordListMatrix(const std::string &filename);
 
     /**
-     * @brief Constructs a CoordList matrix from a vector of Coord.
+     * @brief Constructs a CoordList matrix from a vector of type Coord.
      *
      * @param coords Vector of Coord objects, representing occupied indices in the matrix
      * @param M Number of rows in matrix
      * @param N Number of cols in matrix
      *
-     * Throws std::invalid_argument on invalid M, N or mismatch between Coord bounds and specified dimensions.
+     * @throws std::invalid_argument on invalid M, N or mismatch between Coord bounds and specified dimensions.
      */
     CoordListMatrix(const std::vector<Coord> &coords, int M, int N);
 
     /**
-     * @brief Returns the list of non-zero (row, col) coordinates.
+     * @brief Returns a vector of non-zero (row, col) coordinates.
      * @return Reference to the internal vector of Coord entries.
      */
     std::vector<Coord>& getCoords();
 
     /**
-     * @brief Performs sparse matrix multiplication with this matrix on the left.
+     * @brief Performs naive (without product estimation) sparse matrix multiplication with this matrix on the left.
      *
      * Multiplies the current matrix (as left operand) with the given matrix `right`,
      * returning the coordinate list of the result.
@@ -53,7 +48,7 @@ class CoordListMatrix{
      *
      * @throws std::invalid_argument on matrix dimension mismatch.
      */
-    CoordListMatrix matmul(const CoordListMatrix &right);
+    CoordListMatrix naiveMatmul(const CoordListMatrix &right);
 
     /**
      * @brief Returns the shape (numRows, numCols) of the matrix.
