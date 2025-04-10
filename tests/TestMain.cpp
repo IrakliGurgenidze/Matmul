@@ -12,3 +12,7 @@ TEST_CASE("Addition works correctly", "[math]") {
     REQUIRE(add(-1, -1) == -2);
     REQUIRE(add(5, -5) == 0);
 }
+
+TEST_CASE("CoordList Performance Benchmark, small", "[CoordListMatrix]") {
+
+}
