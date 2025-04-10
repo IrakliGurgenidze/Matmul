@@ -10,9 +10,9 @@ static int K_VAL = 0;  // Will be set in estimateProductSize
 // Combines current sketch S with buffer F, keeping k smallest hashAC values
 static void combine(std::vector<ACpair> &S, std::vector<ACpair> &F) {
     S.insert(S.end(), F.begin(), F.end());
-    F.clear();
+    F.clear(); // Empty F
 
-    if ((int)S.size() <= K_VAL) return;
+    if (static_cast<int>(S.size()) <= K_VAL) return;
 
     std::nth_element(S.begin(), S.begin() + (K_VAL - 1), S.end(),
                      [](const ACpair &lhs, const ACpair &rhs) {
@@ -25,7 +25,6 @@ static void combine(std::vector<ACpair> &S, std::vector<ACpair> &F) {
         return x.hashAC <= thresh;
     });
     S.erase(mid, S.end());
-
     if ((int)S.size() > K_VAL) {
         S.resize(K_VAL);
     }
@@ -40,29 +39,43 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
                          int k,
                          std::vector<ACpair> &S,
                          std::vector<ACpair> &F,
-                         std::unordered_set<std::pair<int,int>, pair_hash> &addedPairs) {
+                         std::vector<bool> &seen,
+                         int maxC) {
 
-    int s_bar = 0;
-    for (int t = 0; t < (int)C.size(); t++) {
-        while (hashAC(A[s_bar].h1a, C[t].h2c) < hashAC(A[(s_bar - 1 + A.size()) % A.size()].h1a, C[t].h2c)) {
-            s_bar = (s_bar - 1 + A.size()) % A.size();
-        }
-        int s = s_bar;
-        int start = s;
-        do {
-            double h = hashAC(A[s].h1a, C[t].h2c);
-            std::pair<int,int> key(A[s].a, C[t].c);
-            if (addedPairs.find(key) == addedPairs.end()) {
-                addedPairs.insert(key);
+    int Asize = A.size(); //cache a.size
+    for (int t = 0; t < (int)C.size(); t++) { // loop through C
+        double cHash = C[t].h2c; //cache hash for col (yt)
+        int s_bar = 0;
+        // to find s_bar (starting row), find row in A w/ min hash value in this col (t)
+        for (int s = 1; s < Asize; s++) {
+            double currH = hashAC(A[s].h1a, cHash); //hash (x_s_bar, y_t)
+            double prevH = hashAC(A[s_bar].h1a, cHash);
+            if (currH < prevH) { //find s_bar s.t. hash is min
+                s_bar  = s;
+            }
+        } // end PC line 12
+
+        for (int i = 0; i < Asize; i++) {
+            // Find all s where h(x,y) < p
+            int s = (s_bar + i) % Asize; // line 19 check, gives s->(s_bar + offset) mod |A| where
+            double h = hashAC(A[s].h1a, cHash); // get hash
+            if (h >= p) break; // only do while hash < p
+
+            // check for dups using seen vector, calculate proper idx
+            int idx = A[s].a * (maxC + 1) + C[t].c;
+            if (!seen[idx]) {
+                seen[idx] = true;
+                //push coord into F if not already
                 F.push_back({A[s].a, C[t].c, h});
             }
-            // if (F.size() > K_VAL) {
-            //     combine(S, F);
-            //     F.clear();
-            // }
-            s = (s + 1) % A.size();
+
+            //When F reaches K capacity, combine, clear, update p locally
+            if (F.size() >= K_VAL) {
+                combine(S, F);
+                p = p_val;
+            }
+
         }
-        while (s != start && hashAC(A[s].h1a, C[t].h2c) < p);
     }
 }
 
@@ -121,12 +134,22 @@ double estimateProductSize(const std::vector<R1Tuple>& R1Tuples,
     S.reserve(K_VAL);
     F.reserve(K_VAL);
 
-    std::unordered_set<std::pair<int,int>, pair_hash> addedPairs;
+    // To check dupes, determine the max vals for a and c
+    int maxA = 0, maxC = 0;
+    for (const auto &t : R1) {
+        if (t.a > maxA) maxA = t.a;
+    }
+    for (const auto &t : R2) {
+        if (t.c > maxC) maxC = t.c;
+    }
+    // Create a boolean vector with max cals for seen tracking
+    std::vector<bool> seen((maxA + 1) * (maxC + 1), false);
+
 
     size_t i = 0, j = 0;
     while (i < Ai.size() && j < Ci.size()) {
         if (Ai[i].first == Ci[j].first) {
-            pointerSweep(Ai[i].second, Ci[j].second, p_val, K_VAL, S, F, addedPairs);
+            pointerSweep(Ai[i].second, Ci[j].second, p_val, K_VAL, S, F, seen, maxC);
             i++; j++;
         } else if (Ai[i].first < Ci[j].first) {
             i++;
