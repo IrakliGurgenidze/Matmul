@@ -39,6 +39,7 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
  * @param R1 Vector of R1Tuples, containing coordinates of non-zero values in R1 and their prehashed values
  * @param R2 Vector of R2Tuples, containing coordinates of non-zero values in R2 and their prehashed values
  * @param epsilon Double in [0, 1) that sets error bound of the estimation
+ *
  * @return Returns estimated number of non-zero values in product
  */
 double estimateProductSize(std::vector<R1Tuple> &R1,

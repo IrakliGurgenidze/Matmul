@@ -12,6 +12,7 @@
  *
  * @param r1: Vector of non-zero Coords in first matrix
  * @param r2: Vector of non-zero Coords in second matrix
+ *
  * @return: The number of non-zero elements in the product vector
  */
 int groundTruthCalc(const std::vector<Coord>& r1, const std::vector<Coord>& r2);
@@ -23,6 +24,7 @@ int groundTruthCalc(const std::vector<Coord>& r1, const std::vector<Coord>& r2);
  * @param numRows: Number of rows in the result
  * @param numCols: Number of cols in the result
  * @param randomSeed Seed for randomly generating the matrix
+ *
  * @return: A vector of Coords representing the non-zero positions
  */
 std::vector<Coord> generateSparseMatrix(double sparseDegree, int numRows, int numCols, int randomSeed=42);

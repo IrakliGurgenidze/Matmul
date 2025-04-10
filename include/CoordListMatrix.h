@@ -26,6 +26,17 @@ class CoordListMatrix{
     explicit CoordListMatrix(const std::string &filename);
 
     /**
+     * @brief Constructs a CoordList matrix from a vector of Coord.
+     *
+     * @param coords Vector of Coord objects, representing occupied indices in the matrix
+     * @param M Number of rows in matrix
+     * @param N Number of cols in matrix
+     *
+     * Throws std::invalid_argument on invalid M, N or mismatch between Coord bounds and specified dimensions.
+     */
+    CoordListMatrix(const std::vector<Coord> &coords, int M, int N);
+
+    /**
      * @brief Returns the list of non-zero (row, col) coordinates.
      * @return Reference to the internal vector of Coord entries.
      */
@@ -40,7 +51,7 @@ class CoordListMatrix{
      * @param right The right-hand matrix in the multiplication (this × right)
      * @return CoordListMatrix representing the product
      *
-     * Throws std::invalid_argument on matrix dimension mismatch.
+     * @throws std::invalid_argument on matrix dimension mismatch.
      */
     CoordListMatrix matmul(const CoordListMatrix &right);
 
@@ -49,7 +60,6 @@ class CoordListMatrix{
      * @return std::pair<int, int> representing (rows, cols)
      */
     [[nodiscard]] std::pair<int, int> shape() const;
-
 
   private:
     std::vector<Coord> coords;

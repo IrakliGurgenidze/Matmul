@@ -17,7 +17,7 @@ target_include_directories(matrix_utils PUBLIC include)
 
 # Add your test executable
 add_executable(tests
-        TestMain.cpp
+        TestMatmulTime.cpp
         TestHashUtils.cpp
         ../src/HashUtils.cpp
         ../include/external/MurmurHash3.cpp

@@ -5,6 +5,7 @@
 #include "../include/CoordListMatrix.h"
 #include "../include/Types.h"
 #include <fstream>
+#include <MatrixUtils.h>
 
 
 // Helper function to create a small test matrix file
@@ -81,6 +82,76 @@ TEST_CASE("CoordListMatrix constructor and getCoords", "[CoordListMatrix]") {
   }
 }
 
+TEST_CASE("CoordListMatrix constructor, vector", "[CoordListMatrix]") {
+    int M = 1000;
+    int N = 2000;
+
+    SECTION("Negative dimensions throw invalid_argument") {
+        std::vector<Coord> empty;
+        REQUIRE_THROWS_AS(CoordListMatrix(empty, -1, N), std::invalid_argument);
+        REQUIRE_THROWS_AS(CoordListMatrix(empty, M, -1), std::invalid_argument);
+        REQUIRE_THROWS_AS(CoordListMatrix(empty, 0, 0), std::invalid_argument);
+    }
+
+    SECTION("Out-of-bounds coordinate throws out_of_range") {
+        std::vector<Coord> badCoords = {
+            {M, 10},    // row is out of bounds
+            {100, N}, // col is out of bounds
+            {-1, 10},   // negative row
+            {10, -1}    // negative col
+        };
+
+        for (const auto& c : badCoords) {
+            std::vector test = {c};
+            REQUIRE_THROWS_AS(CoordListMatrix(test, M, N), std::out_of_range);
+        }
+    }
+
+    SECTION("Valid coordinates construct successfully") {
+        std::vector<Coord> goodCoords = {
+            {0, 0},
+            {M - 1, N - 1},
+            {500, 1000}
+        };
+
+        REQUIRE_NOTHROW(CoordListMatrix(goodCoords, M, N));
+    }
+}
+
+TEST_CASE("CoordListMatrix naive matmul dimensions match", "[CoordListMatrix]") {
+    SECTION("Check mismatch error thrown") {
+        double sparsity = 0.05;
+        int M = 1000;
+        int N = 2000;
+
+        const auto coordsA = generateSparseMatrix(sparsity, M, 5);
+        CoordListMatrix A(coordsA, M, 5);
+
+        const auto coordsB = generateSparseMatrix(sparsity, 10, N);
+        CoordListMatrix B(coordsB, 10, N);
+
+        REQUIRE_THROWS_AS(A.matmul(B), std::invalid_argument);
+    }
+
+    SECTION("Check result dimensions") {
+        double sparsity = 0.05;
+        int M = 1000;
+        int N = 2000;
+        int K = 1000;
+
+        const auto coordsA = generateSparseMatrix(sparsity, M, K);
+        CoordListMatrix A(coordsA, M, K);
+
+        const auto coordsB = generateSparseMatrix(sparsity, K, N);
+        CoordListMatrix B(coordsB, K, N);
+
+        auto result = A.matmul(B);
+        REQUIRE(result.shape() == std::pair<int, int> (M, N));
+    }
+
+
+
+}
 
 
 /**
