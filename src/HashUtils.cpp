@@ -10,7 +10,6 @@ constexpr uint64_t PRIME = 4294967311ULL;
 uint64_t murmurSeed1 = 0;
 uint64_t murmurSeed2 = 0;
 
-// Initializes murmur hash seeds with random values in [1, PRIME - 1]
 void initPairwiseHashes() {
     std::random_device rd;
     std::mt19937_64 gen(rd());
@@ -19,14 +18,12 @@ void initPairwiseHashes() {
     murmurSeed2 = dis(gen);
 }
 
-// Applies MurmurHash3_x86_32 to integer x with given seed and maps to [0, 1]
 double murmur_hash(int x, uint64_t seed) {
     uint32_t hash_val;
     MurmurHash3_x86_32(&x, sizeof(x), seed, &hash_val);
     return static_cast<double>(hash_val) / static_cast<double>(UINT32_MAX);
 }
 
-// Combines h1(a) and h2(c) into a single hash value in [0, 1]
 double hashAC(double h1a, double h2c) {
     double diff = h1a - h2c;
     if (diff < 0) diff += 1.0;

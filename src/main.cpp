@@ -10,8 +10,8 @@ int main() {
 
     // Load sparse matrices from .mtx files
     // Load sparse matrices from .mtx files
-    CoordListMatrix matrix1("data/bwm200.mtx", M, N);
-    CoordListMatrix matrix2("data/rdb200.mtx", M, N);
+    CoordListMatrix matrix1("data/bwm200.mtx");
+    CoordListMatrix matrix2("data/rdb200.mtx");
 
     std::vector<Coord> coords1 = matrix1.getCoords();
     std::vector<Coord> coords2 = matrix2.getCoords();
