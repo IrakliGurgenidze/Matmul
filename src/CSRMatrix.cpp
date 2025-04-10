@@ -1,6 +1,8 @@
 #include "../include/CSRMatrix.h"
 #include <fstream>
 #include <sstream>
+#include <algorithm>
+
 #include "Types.h"
 
 bool compareRowCol(const Coord& a, const Coord& b) {
