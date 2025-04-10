@@ -86,7 +86,7 @@ double estimateProductSize(std::vector<R1Tuple> &R1,
     K_VAL = static_cast<int>(9.0 / (epsilon * epsilon));
     initPairwiseHashes();
 
-    // Sort R1 and R2 by join key (b), then by hash value
+    // Sort R1 and R2 by increasing join key (b), then by increasing hash value
     std::ranges::sort(R1, [](const R1Tuple &lhs, const R1Tuple &rhs) {
         return lhs.b != rhs.b ? lhs.b < rhs.b : lhs.h1a < rhs.h1a;
     });
@@ -101,7 +101,7 @@ double estimateProductSize(std::vector<R1Tuple> &R1,
         int currB = R1[i].b;
         size_t j = i;
         while (j < R1.size() && R1[j].b == currB) j++;
-        Ai.emplace_back(currB, std::vector<R1Tuple>(R1.begin() + i, R1.begin() + j));
+        Ai.emplace_back(currB, std::vector(R1.begin() + i, R1.begin() + j));
         i = j;
     }
 
@@ -111,7 +111,7 @@ double estimateProductSize(std::vector<R1Tuple> &R1,
         int currB = R2[i].b;
         size_t j = i;
         while (j < R2.size() && R2[j].b == currB) j++;
-        Ci.emplace_back(currB, std::vector<R2Tuple>(R2.begin() + i, R2.begin() + j));
+        Ci.emplace_back(currB, std::vector(R2.begin() + i, R2.begin() + j));
         i = j;
     }
 
