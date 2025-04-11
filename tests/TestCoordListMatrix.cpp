@@ -52,8 +52,8 @@ void createTestMatrixFileB(const std::string& filename) {
 }
 
 TEST_CASE("CoordListMatrix constructor and getCoords", "[CoordListMatrix]") {
-  const std::string filenameA = "/data/Trec4.mtx";
-  // createTestMatrixFileA(filenameA);
+  const std::string filenameA = "Trec4.mtx";
+  createTestMatrixFileA(filenameA);
 
   CoordListMatrix matrix(filenameA);
 
