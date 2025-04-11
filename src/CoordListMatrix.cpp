@@ -54,6 +54,7 @@ CoordListMatrix::CoordListMatrix(const std::string &filename) : M(0), N(0){
             }
         }
         this->coords = coords;
+        return;
     }
 }
 

@@ -14,7 +14,9 @@ void createTestMatrixFileA(const std::string& filename) {
   if (!fout.is_open()) {
     throw std::runtime_error("Failed to open file A.");
   }
+
   fout << "2 3 3\n";
+
   fout << "1 2 3\n";
   fout << "2 2 2\n";
   fout << "2 3 1\n";
