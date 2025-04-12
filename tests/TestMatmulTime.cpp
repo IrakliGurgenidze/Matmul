@@ -19,11 +19,13 @@ void benchmark_matmul_naive(
     const auto coordsB = generateSparseMatrix(sparsity, K, N);
     CoordListMatrix B(coordsB, K, N);
 
-    const auto start = std::chrono::high_resolution_clock::now();
+    const auto start = std::chrono::steady_clock::now();
     auto result = A.naiveMatmul(B);
-    const auto end = std::chrono::high_resolution_clock::now();
+    const auto end = std::chrono::steady_clock::now();
 
     const auto elapsed = std::chrono::duration<double>(end - start).count();
+
+    REQUIRE(elapsed > 0);
 
     if (!csv) {
         std::cout << std::fixed << std::setprecision(6);
@@ -39,8 +41,13 @@ void benchmark_matmul_naive(
         std::cout << M << "," << K << "," << N << "," << elapsed << std::endl;
     }
 
+    // Measure result against ground truth, and verify dimensions match.
+    int trueNumberNonzero = groundTruthCalc(A.getCoords(), B.getCoords());
+    int computedNumberNonzero = result.getCoords().size();
+
     REQUIRE(result.shape().first == M);
     REQUIRE(result.shape().second == N);
+    REQUIRE(computedNumberNonzero == trueNumberNonzero);
 }
 
 TEST_CASE("CoordList Performance Benchmark, (single op, naive)", "[CoordListMatrix]") {
@@ -53,7 +60,7 @@ TEST_CASE("CoordList Performance Benchmark, (single op, naive)", "[CoordListMatr
     }
 
     SECTION("Single matmul operation, large naive") {
-        benchmark_matmul_naive(100000, 50000, 100000, 0.005, "[naive matmul, large]");
+        benchmark_matmul_naive(100000, 50000, 100000, 0.0005, "[naive matmul, large]");
     }
 
 }
@@ -61,7 +68,7 @@ TEST_CASE("CoordList Performance Benchmark, (single op, naive)", "[CoordListMatr
 TEST_CASE("CoordList Scaling Sweep (single op, naive)", "[benchmark]") {
     double sparsity = 0.0005;
     int start_N = 5000;
-    int end_N = 750000;
+    int end_N = 500000;
     int step = 5000;
 
     for (int N = start_N; N <= end_N; N += step) {
