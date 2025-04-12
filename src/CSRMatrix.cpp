@@ -140,9 +140,56 @@ std::vector<Coord> CSRMatrix::getCoords() const {
     return coords;
 }
 
-// TODO implement naiveMatmul
+
 CSRMatrix CSRMatrix::naiveMatmul(const CSRMatrix &right) {
-    return CSRMatrix(std::vector<Coord>{}, this->M, right.N);
+    // Check for matrix dimension mismatch
+    auto [rowsA, colsA] = this->shape();
+    auto [rowsB, colsB] = right.shape();
+    if (colsA != rowsB) {
+        throw std::invalid_argument("matmul dimension mismatch: "
+                                    "Left cols (" + std::to_string(colsA) + ") != Right rows (" + std::to_string(rowsB) + ")");
+    }
+
+    std::vector<int> resultRowPtr(rowsA + 1, 0);
+    std::vector<std::unordered_set<int>> resSets(rowsA);
+
+    for (int i = 0; i < rowsA; ++i) {
+        for (int aPos = rowPtr[i]; aPos < rowPtr[i + 1]; ++aPos) {
+            // column index in A = row index in B
+            int j = colIdx[aPos];
+
+            for (int bPos = right.rowPtr[j]; bPos < right.rowPtr[j + 1]; ++bPos) {
+                int k = right.colIdx[bPos];
+                resSets[i].insert(k);
+            }
+        }
+        resultRowPtr[i + 1] = static_cast<int>(resSets[i].size());
+    }
+
+    // prefix sum to finalize resultRowPtr
+    for (int i = 0; i < rowsA; ++i) {
+        resultRowPtr[i + 1] += resultRowPtr[i];
+    }
+
+    std::vector<int> resultColIdx;
+    // Reserve space of last row val
+    resultColIdx.reserve(resultRowPtr.back());
+
+    // flatten resSets into colIdx
+    for (int i = 0; i < rowsA; ++i) {
+        for (int k: resSets[i]) {
+            resultColIdx.push_back(k);
+        }
+    }
+
+    CSRMatrix result = *this;
+    result.M = rowsA;
+    result.N = colsB;
+    result.rowPtr = resultRowPtr;
+    result.colIdx = resultColIdx;
+
+    return result;
+    // return CSRMatrix(std::vector<Coord>{}, this->M, right.N);
 }
 
 std::pair<int, int> CSRMatrix::shape() const {
