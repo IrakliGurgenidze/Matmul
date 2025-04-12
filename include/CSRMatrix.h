@@ -36,18 +36,32 @@ class CSRMatrix {
      */
     std::vector<Coord> getCoords() const;
 
-  /**
-   * @brief Performs naive (without product estimation) sparse matrix multiplication with this matrix on the left.
-   *
-   * Multiplies the current matrix (as left operand) with the given matrix `right`,
-   * returning the coordinate list of the result.
-   *
-   * @param right The right-hand matrix in the multiplication (this × right)
-   * @return CSRMatrix representing the product
-   *
-   * @throws std::invalid_argument on matrix dimension mismatch.
-   */
-   CSRMatrix naiveMatmul(const CSRMatrix &right);
+    /**
+     * @brief Performs naive (without product estimation) sparse matrix multiplication with this matrix on the left.
+     *
+     * Multiplies the current matrix (as left operand) with the given matrix `right`,
+     * returning the coordinate list of the result.
+     *
+     * @param right The right-hand matrix in the multiplication (this × right)
+     * @return CSRMatrix representing the product
+     *
+     * @throws std::invalid_argument on matrix dimension mismatch.
+    */
+    CSRMatrix naiveMatmul(const CSRMatrix &right);
+
+    /**
+     * @brief Performs optimized (with estimation) sparse matrix multiplication with this matrix on the left.
+     *
+     * Multiplies the current matrix (as left operand) with the given matrix `right`,
+     * returning the coordinate list of the result.
+     *
+     * @param right The right-hand matrix in the multiplication (this × right)
+     * @return CSRMatrix representing the product
+     *
+     * @throws std::invalid_argument on matrix dimension mismatch.
+     */
+    CSRMatrix optimizedMatmul(const CSRMatrix &right, double estimate);
+
 
     /**
      * @brief Returns the shape (numRows, numCols) of the matrix.

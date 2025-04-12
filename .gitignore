@@ -2,6 +2,10 @@
 build/
 cmake-build-*/
 CMakeFiles/
+data/af_shell4.mtx
+data/af_shell5.mtx
+data/cage15.mtx
+data/Hamrle3.mtx
 CMakeCache.txt
 Makefile
 cmake_install.cmake
