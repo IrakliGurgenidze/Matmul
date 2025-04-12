@@ -192,6 +192,11 @@ CSRMatrix CSRMatrix::naiveMatmul(const CSRMatrix &right) {
     // return CSRMatrix(std::vector<Coord>{}, this->M, right.N);
 }
 
+
+// CSRMatrix CSRMatrix::optimizedMatmul(const CSRMatrix &right) {
+// }
+
+
 std::pair<int, int> CSRMatrix::shape() const {
     return {this->M, this->N};
 }

@@ -94,9 +94,9 @@ const std::vector<HashCoord>& CoordListMatrix::getHashedCoords() const { return 
 
 
 CoordListMatrix CoordListMatrix::naiveMatmul(const CoordListMatrix &right) {
-    if (this->N != right.M) {
-        throw std::invalid_argument("Matrix dimensions do not align.");
-    }
+    // if (this->N != right.M) {
+    //     throw std::invalid_argument("Matrix dimensions do not align.");
+    // }
 
     // Check for matrix dimension mismatch
     auto [rowsA, colsA] = this->shape();
@@ -147,9 +147,9 @@ CoordListMatrix CoordListMatrix::naiveMatmul(const CoordListMatrix &right) {
 }
 
 CoordListMatrix CoordListMatrix::optimizedMatmul(const CoordListMatrix &right, double estimate) {
-    if (this->N != right.M) {
-        throw std::invalid_argument("Matrix dimensions do not align.");
-    }
+    // if (this->N != right.M) {
+    //     throw std::invalid_argument("Matrix dimensions do not align.");
+    // }
 
     // Check for matrix dimension mismatch
     auto [rowsA, colsA] = this->shape();
