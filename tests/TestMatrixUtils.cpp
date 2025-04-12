@@ -41,7 +41,7 @@ TEST_CASE("Sparse Matrix Generator", "[generateSparseMatrix]") {
         int rows = 10, cols = 10;
         int expectedNNZ = static_cast<int>(rows * cols * sparsity);
 
-        auto mat = generateSparseMatrix(sparsity, rows, cols);
+        auto mat = generateSparseMatrix(sparsity, rows, cols, 42);
 
         REQUIRE(mat.size() == expectedNNZ);
 
@@ -73,13 +73,13 @@ TEST_CASE("Sparse Matrix Generator", "[generateSparseMatrix]") {
 
     SECTION("Matrix with full density (sparsity = 1.0)") {
         int rows = 5, cols = 5;
-        auto mat = generateSparseMatrix(1.0, rows, cols);
+        auto mat = generateSparseMatrix(1.0, rows, cols, 34);
         REQUIRE(mat.size() == rows * cols);
     }
 
     SECTION("Invalid sparsity throws exception") {
-        REQUIRE_THROWS(generateSparseMatrix(0.0, 10, 10));
-        REQUIRE_THROWS(generateSparseMatrix(1.1, 10, 10));
-        REQUIRE_THROWS(generateSparseMatrix(-0.5, 10, 10));
+        REQUIRE_THROWS(generateSparseMatrix(0.0, 10, 10, 5));
+        REQUIRE_THROWS(generateSparseMatrix(1.1, 10, 10, 7));
+        REQUIRE_THROWS(generateSparseMatrix(-0.5, 10, 10, 9));
     }
 }

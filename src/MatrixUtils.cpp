@@ -34,7 +34,7 @@ std::vector<Coord> generateSparseMatrix(double sparseDegree, int numRows, int nu
         throw std::invalid_argument("sparseDegree must be in the range (0.0, 1.0]");
     }
 
-    int totalElements = numRows * numCols;
+    int64_t totalElements = static_cast<int64_t>(numRows) * numCols;
     int targetNonzeros = static_cast<int>(totalElements * sparseDegree);
 
     std::mt19937 rng(randomSeed);

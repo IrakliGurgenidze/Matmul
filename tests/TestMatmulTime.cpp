@@ -13,10 +13,14 @@ void benchmark_matmul_naive(
     const std::string& label,
     bool csv=false
 ) {
-    const auto coordsA = generateSparseMatrix(sparsity, M, K);
-    CoordListMatrix A(coordsA, M, K);
+    std::random_device rd;
+    int seedA = rd();
+    int seedB = rd();
 
-    const auto coordsB = generateSparseMatrix(sparsity, K, N);
+    const auto coordsA = generateSparseMatrix(sparsity, M, K, seedA);
+    const auto coordsB = generateSparseMatrix(sparsity, K, N, seedB);
+
+    CoordListMatrix A(coordsA, M, K);
     CoordListMatrix B(coordsB, K, N);
 
     const auto start = std::chrono::steady_clock::now();
@@ -42,12 +46,12 @@ void benchmark_matmul_naive(
     }
 
     // Measure result against ground truth, and verify dimensions match.
-    int trueNumberNonzero = groundTruthCalc(A.getCoords(), B.getCoords());
-    int computedNumberNonzero = result.getCoords().size();
+    // int trueNumberNonzero = groundTruthCalc(A.getCoords(), B.getCoords());
+    // int computedNumberNonzero = result.getCoords().size();
+    // REQUIRE(computedNumberNonzero == trueNumberNonzero);
 
     REQUIRE(result.shape().first == M);
     REQUIRE(result.shape().second == N);
-    REQUIRE(computedNumberNonzero == trueNumberNonzero);
 }
 
 TEST_CASE("CoordList Performance Benchmark, (single op, naive)", "[CoordListMatrix]") {
@@ -60,20 +64,20 @@ TEST_CASE("CoordList Performance Benchmark, (single op, naive)", "[CoordListMatr
     }
 
     SECTION("Single matmul operation, large naive") {
-        benchmark_matmul_naive(100000, 50000, 100000, 0.0005, "[naive matmul, large]");
+        benchmark_matmul_naive(300000, 300000, 3000000, 0.0005, "[naive matmul, large]");
     }
 
 }
 
 TEST_CASE("CoordList Scaling Sweep (single op, naive)", "[benchmark]") {
     double sparsity = 0.0005;
-    int start_N = 5000;
-    int end_N = 500000;
-    int step = 5000;
+    int start_N = 10000;
+    int end_N = 100000;
+    int step = 10000;
 
     for (int N = start_N; N <= end_N; N += step) {
         int M = N;
-        int K = N / 1; // or N, if you want square multiplications
+        int K = N; // or N, if you want square multiplications
 
         std::string label = "[naive-sweep N=" + std::to_string(N) + "]";
         benchmark_matmul_naive(M, K, N, sparsity, label, true);

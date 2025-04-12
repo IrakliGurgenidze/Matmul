@@ -94,10 +94,6 @@ const std::vector<HashCoord>& CoordListMatrix::getHashedCoords() const { return 
 
 
 CoordListMatrix CoordListMatrix::naiveMatmul(const CoordListMatrix &right) {
-    // if (this->N != right.M) {
-    //     throw std::invalid_argument("Matrix dimensions do not align.");
-    // }
-
     // Check for matrix dimension mismatch
     auto [rowsA, colsA] = this->shape();
     auto [rowsB, colsB] = right.shape();
@@ -110,12 +106,12 @@ CoordListMatrix CoordListMatrix::naiveMatmul(const CoordListMatrix &right) {
     std::vector<std::vector<int>> rowA(rowsA);
     std::vector<std::vector<int>> rowB(rowsB);
 
-    for(auto &c: coords){
-        rowA[c.row].push_back(c.col);
+    for(auto &[row, col]: coords){
+        rowA[row].push_back(col);
     }
 
-    for(auto &c: right.coords){
-        rowB[c.row].push_back(c.col);
+    for(const auto &[row, col]: right.coords){
+        rowB[row].push_back(col);
     }
 
     std::vector<std::unordered_set<int>> resSets(rowsA);

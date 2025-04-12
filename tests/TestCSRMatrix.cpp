@@ -121,7 +121,7 @@ TEST_CASE("CSRMatrix constructor, vector", "[CSRMatrix]") {
         int M = 1000;
         int N = 2000;
 
-        const auto actualCoords = generateSparseMatrix(sparsity, M, 5);
+        const auto actualCoords = generateSparseMatrix(sparsity, M, 5, 42);
         CSRMatrix mat(actualCoords, M, N);
         const auto matCoords = mat.getCoords();
 
@@ -138,7 +138,7 @@ TEST_CASE("CSRMatrix naiveMatmul dimensions match", "[CSRMatrix]") {
         int M = 1000;
         int N = 2000;
 
-        const auto coordsA = generateSparseMatrix(sparsity, M, 5);
+        const auto coordsA = generateSparseMatrix(sparsity, M, 5, 42);
         CSRMatrix A(coordsA, M, 5);
 
         const auto coordsB = generateSparseMatrix(sparsity, 10, N);
