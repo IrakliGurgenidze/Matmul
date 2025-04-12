@@ -66,6 +66,37 @@ class CoordListMatrix{
 
 
     /**
+     * @brief Performs optimized (with estimation) sparse matrix multiplication with this matrix on the left.
+     *
+     * Multiplies the current matrix (as left operand) with the given matrix `right`,
+     * returning the coordinate list of the result.
+     *
+     * @param right The right-hand matrix in the multiplication (this × right)
+     * @param estimation The estimated product size of resulting matrix
+     * @return CoordListMatrix representing the product
+     *
+     * @throws std::invalid_argument on matrix dimension mismatch.
+     */
+      [[nodiscard]] std::vector<CoordListMatrix> batchOptimizedMatmul(const std::vector<CoordListMatrix>& rights,
+        double epsilon = 0.1) const;
+
+
+        /**
+       * @brief Performs optimized (with estimation) sparse matrix multiplication with this matrix on the left.
+       *
+       * Multiplies the current matrix (as left operand) with the given matrix `right`,
+       * returning the coordinate list of the result.
+       *
+       * @param right The right-hand matrix in the multiplication (this × right)
+       * @param estimation The estimated product size of resulting matrix
+       * @return CoordListMatrix representing the product
+       *
+       * @throws std::invalid_argument on matrix dimension mismatch.
+       */
+      [[nodiscard]] std::vector<CoordListMatrix> batchedNaiveMatmul(const std::vector<CoordListMatrix>& rights) const;
+
+
+    /**
     * @brief Returns a vector of non-zero (row, col) coordinates with their respective hash values.
     * @return Reference to the internal vector of HashCoord entries.
     */

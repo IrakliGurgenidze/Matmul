@@ -115,7 +115,7 @@ TEST_CASE("CoordList Performance Benchmark, (single op, naive)", "[CoordListMatr
 }
 
 TEST_CASE("CoordList Scaling Sweep (single op, naive)", "[benchmark]") {
-    double sparsity = 0.0005;
+    double sparsity = 0.001;
     int start_N = 10000;
     int end_N = 100000;
     int step = 10000;
@@ -130,7 +130,7 @@ TEST_CASE("CoordList Scaling Sweep (single op, naive)", "[benchmark]") {
 }
 
 TEST_CASE("CoordList Scaling Sweep (single op, optimized)", "[benchmark]") {
-    double sparsity = 0.0005;
+    double sparsity = 0.001;
     int start_N = 10000;
     int end_N = 100000;
     int step = 10000;

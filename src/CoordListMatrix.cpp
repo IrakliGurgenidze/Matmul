@@ -197,6 +197,114 @@ CoordListMatrix CoordListMatrix::optimizedMatmul(const CoordListMatrix &right, d
     return outMatrix;
 }
 
+std::vector<CoordListMatrix> CoordListMatrix::batchedNaiveMatmul(const std::vector<CoordListMatrix> &rights) const {
+
+    std::vector<CoordListMatrix> results;
+    results.reserve(rights.size());
+
+    auto [rowsA, colsA] = this->shape();
+    std::vector<std::vector<int>> leftGroups(rowsA);
+    for (const auto &coord : this->coords) {
+        leftGroups[coord.row].push_back(coord.col);
+    }
+
+    for (const auto &right : rights) {
+        auto [rowsB, colsB] = right.shape();
+        if (colsA != rowsB) {
+            throw std::invalid_argument("Dimension mismatch in naive batch multiplication.");
+        }
+
+        std::vector<std::vector<int>> rightGroups(rowsB);
+        for (const auto &coord : right.coords) {
+            rightGroups[coord.row].push_back(coord.col);
+        }
+
+        // For each left row i, iterate over its list of join keys
+        // use that join key to lookup rightGroups[joinKey] – each lookup is done independently
+        std::vector<std::unordered_set<int>> resSets(rowsA);
+        for (int i = 0; i < rowsA; i++) {
+            for (int joinKey : leftGroups[i]) {
+                if (joinKey >= 0 && joinKey < rowsB) {
+                    for (int rightCol : rightGroups[joinKey]) {
+                        resSets[i].insert(rightCol);
+                    }
+                }
+            }
+        }
+
+        std::vector<Coord> resultCoords;
+        for (int i = 0; i < rowsA; i++) {
+            for (int col : resSets[i]) {
+                resultCoords.push_back({i, col});
+            }
+        }
+
+        CoordListMatrix outMatrix = *this;
+        outMatrix.coords = std::move(resultCoords);
+        outMatrix.M = rowsA;
+        outMatrix.N = colsB;
+        results.push_back(std::move(outMatrix));
+    }
+
+    return results;
+
+}
+
+std::vector<CoordListMatrix> CoordListMatrix::batchOptimizedMatmul(const std::vector<CoordListMatrix> &rights,
+    double epsilon) const {
+
+    std::vector<CoordListMatrix> results;
+    results.reserve(rights.size());
+
+    std::vector<std::vector<int>> leftGroups(this->N);
+
+    for (const auto &coord : this->coords) {
+        leftGroups[coord.col].push_back(coord.row);
+    }
+
+    // Process each right matrix in the batch
+    for (const auto &right : rights) {
+        if (this->N != right.M) {
+            throw std::invalid_argument("Dimension mismatch in optimized batch multiplication.");
+        }
+        auto [rowsB, colsB] = right.shape();
+
+        std::vector<std::vector<int>> rightGroups(right.M);
+        for (const auto &coord : right.coords) {
+            rightGroups[coord.row].push_back(coord.col);
+        }
+
+        // Call the estimator for the current left/right pair
+        // The estimator uses the hashed coordinates from each matrix
+        double estimatedJoinSize = estimateProductSize(this->getHashedCoords(), right.getHashedCoords(),
+            epsilon);
+
+        // Preallocate storage for the join result using the estimated join size.
+        std::vector<Coord> resultCoords;
+        resultCoords.reserve(static_cast<size_t>(estimatedJoinSize));
+
+        // Instead of iterating by left row (as in naive), iterate over join keys directly
+        size_t numJoinKeys = std::min(leftGroups.size(), rightGroups.size());
+        for (size_t joinKey = 0; joinKey < numJoinKeys; joinKey++) {
+            if (!leftGroups[joinKey].empty() && !rightGroups[joinKey].empty()) {
+                for (int leftRow : leftGroups[joinKey]) {
+                    for (int rightCol : rightGroups[joinKey]) {
+                        resultCoords.push_back({leftRow, rightCol});
+                    }
+                }
+            }
+        }
+
+        CoordListMatrix outMatrix = *this;
+        outMatrix.coords = std::move(resultCoords);
+        outMatrix.M = this->M;
+        outMatrix.N = colsB;
+        results.push_back(std::move(outMatrix));
+    }
+    return results;
+}
+
+
 std::pair<int, int> CoordListMatrix::shape() const {
     return {this->M, this->N};
 }
