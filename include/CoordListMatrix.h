@@ -57,6 +57,7 @@ class CoordListMatrix{
      * returning the coordinate list of the result.
      *
      * @param right The right-hand matrix in the multiplication (this × right)
+     * @param estimation The estimated product size of resulting matrix
      * @return CoordListMatrix representing the product
      *
      * @throws std::invalid_argument on matrix dimension mismatch.
