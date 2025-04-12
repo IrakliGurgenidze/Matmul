@@ -65,10 +65,10 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
                 return (static_cast<uint64_t>(a) << 32) | static_cast<uint32_t>(c);
             };
             // check for dups using seen vector, calculate proper idx
-            uint64_t key = makeKey(A[s].x, C[t].y);
+            uint64_t key = makeKey(A[s].row, C[t].col);
             if (seen.insert(key).second) {
                 //push coord into F if not already
-                F.push_back({A[s].x, C[t].y, A[s].h1, C[t].h2});
+                F.push_back({A[s].row, C[t].col, A[s].h1, C[t].h2});
             }
 
             //When F reaches K capacity, combine, clear, update p locally
@@ -95,19 +95,19 @@ double estimateProductSize(const std::vector<HashCoord> &R1in,
 
     // Sort R1 and R2 by increasing join key (b), then by increasing hash value
     std::ranges::sort(R1, [](const R1Tuple &lhs, const R1Tuple &rhs) {
-        return lhs.y != rhs.y ? lhs.y < rhs.y : lhs.h1 < rhs.h1;
+        return lhs.col != rhs.col ? lhs.col < rhs.col : lhs.h1 < rhs.h1;
     });
 
     std::ranges::sort(R2, [](const R2Tuple &lhs, const R2Tuple &rhs) {
-        return lhs.x != rhs.x ? lhs.x < rhs.x : lhs.h2 < rhs.h2;
+        return lhs.row != rhs.row ? lhs.row < rhs.row : lhs.h2 < rhs.h2;
     });
 
     // Group R1 by b
     std::vector<std::pair<int, std::vector<R1Tuple>>> Ai;
     for (size_t i = 0; i < R1.size(); ) {
-        int currB = R1[i].y;
+        int currB = R1[i].col;
         size_t j = i;
-        while (j < R1.size() && R1[j].y == currB) j++;
+        while (j < R1.size() && R1[j].col == currB) j++;
         Ai.emplace_back(currB, std::vector(R1.begin() + i, R1.begin() + j));
         i = j;
     }
@@ -115,9 +115,9 @@ double estimateProductSize(const std::vector<HashCoord> &R1in,
     // Group R2 by b
     std::vector<std::pair<int, std::vector<R2Tuple>>> Ci;
     for (size_t i = 0; i < R2.size(); ) {
-        int currB = R2[i].x;
+        int currB = R2[i].row;
         size_t j = i;
-        while (j < R2.size() && R2[j].x == currB) j++;
+        while (j < R2.size() && R2[j].row == currB) j++;
         Ci.emplace_back(currB, std::vector(R2.begin() + i, R2.begin() + j));
         i = j;
     }
@@ -140,8 +140,8 @@ double estimateProductSize(const std::vector<HashCoord> &R1in,
 
     // To check dupes, determine the max vals for a and c
     int maxA = 0, maxC = 0;
-    for (auto& t : R1) maxA = std::max(maxA, t.x);
-    for (auto& t : R2) maxC = std::max(maxC, t.y);
+    for (auto& t : R1) maxA = std::max(maxA, t.row);
+    for (auto& t : R2) maxC = std::max(maxC, t.col);
     std::unordered_set<uint64_t> seen;
     seen.reserve(static_cast<std::size_t>(R1.size() + R2.size()));
 
