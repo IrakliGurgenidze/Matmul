@@ -16,7 +16,6 @@ void createTestMatrixFileA(const std::string& filename) {
   }
 
   fout << "2 3 3\n";
-
   fout << "1 2 3\n";
   fout << "2 2 2\n";
   fout << "2 3 1\n";
@@ -75,6 +74,7 @@ TEST_CASE("CoordListMatrix constructor and getCoords", "[CoordListMatrix]") {
 
   // CHECK
   std::vector<Coord> actualCoords = matrix.getCoords();
+    std::cout << actualCoords.size() << std::endl;
   REQUIRE(actualCoords.size() == expectedCoords.size());
 
   // CHECK EVERY VALUE
