@@ -35,7 +35,7 @@ void benchmark_estimator(
     REQUIRE(elapsed > 0);
 
     if (!csv) {
-        std::cout << std::fixed << std::setprecision(6);
+        std::cout << std::fixed << std::setprecision(10);
         std::cout << std::left
                   << std::setw(21) << label
                   << std::right
@@ -123,8 +123,8 @@ TEST_CASE("Estimator returns accurate value when sketch fills", "[Estimator][Int
 TEST_CASE("Estimator run time", "[Estimator][Benchmark]") {
     double sparsity = 0.0005;
     int start_N = 10000;
-    int end_N = 100000;
-    int step = 10000;
+    int end_N = 40000;
+    int step = 2000;
 
     for (int N = start_N; N <= end_N; N += step) {
         int M = N;
