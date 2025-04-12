@@ -3,6 +3,8 @@
 #include <utility>
 #include <unordered_set>
 #include <iostream>
+#include "HashUtils.h"
+
 
 #ifndef TYPES_H
 #define TYPES_H
@@ -25,17 +27,17 @@ inline std::ostream& operator<<(std::ostream& os, const Coord& c) {
 /**
  * A tuple from relation R1 with a = row, b = join key, and pre-computed hash of 'a'.
  */
-struct R1Tuple { int a, b; double h1a; };
+//struct R1Tuple { int a, b; double h1a; };
 
 /**
  * A tuple from relation R2 with b = join key, c = column, and precomputed hash of 'c'.
  */
-struct R2Tuple { int b, c; double h2c; };
+//struct R2Tuple { int b, c; double h2c; };
 
 /**
  * Represents a pair (a, c) along with the hash value used in estimation.
  */
-struct ACpair { int a, c; double hashAC; };
+//struct ACpair { int a, c; double hashAC; };
 
 /**
  * Hash function for std::pair<int, int> to use in unordered_set/map.
@@ -43,5 +45,22 @@ struct ACpair { int a, c; double hashAC; };
 struct pair_hash {
     std::size_t operator()(const std::pair<int, int>& p) const;
 };
+
+
+/**
+ * Unified struct containing row/col values and their hashes
+ */
+ struct HashCoord {
+     int x;
+     int y;
+     double h1;
+     double h2;
+
+     double hAC() const;
+ };
+
+ using R1Tuple = HashCoord;
+ using R2Tuple = HashCoord;
+ using ACpair = HashCoord;
 
 #endif //TYPES_H

@@ -10,6 +10,7 @@ set(SOURCES
         ${PROJECT_SOURCE_DIR}/include/external/MurmurHash3.cpp
         CSRMatrix.cpp
         ../include/CSRMatrix.h
+        ../include/HashContext.h
 )
 
 add_executable(Matmul ${SOURCES})

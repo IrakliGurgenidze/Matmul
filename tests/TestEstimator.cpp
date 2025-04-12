@@ -12,16 +12,16 @@ TEST_CASE("Estimator returns k^2 when sketch cannot be filled", "[Estimator]") {
     // Total distinct (a, c) = 4
 
     std::vector<R1Tuple> R1 = {
-        {1, 1, 0.1},  // a=1, b=1
-        {2, 2, 0.2},  // a=2, b=2
-        {3, 2, 0.3},  // a=3, b=2
+            {1, 1, 0.1, 0.0},   // x=a=1, y=b=1, h1=0.1
+            {2, 2, 0.2, 0.0},   // x=a=2, y=b=2
+            {3, 2, 0.3, 0.0},   // x=a=3, y=b=2
+    };
+    std::vector<R2Tuple> R2 = {
+            {1, 10, 0.0, 0.7},  // x=b=1, y=c=10, h2=0.7
+            {1, 11, 0.0, 0.9},  // x=b=1, y=c=11
+            {2, 12, 0.0, 0.6},  // x=b=2, y=c=12
     };
 
-    std::vector<R2Tuple> R2 = {
-        {1, 10, 0.7},  // b=1, c=10
-        {1, 11, 0.9},  // b=1, c=11
-        {2, 12, 0.6},  // b=2, c=12
-    };
 
     double epsilon = 0.1;
     int k = static_cast<int>(9.0 / (epsilon * epsilon));
@@ -41,16 +41,18 @@ TEST_CASE("Estimator returns accurate value when sketch fills", "[Estimator][Int
     std::vector<Coord> R1coords = generateSparseMatrix(sparsity, n, n, seed);
     std::vector<Coord> R2coords = generateSparseMatrix(sparsity, n, n, seed * 517);
 
-    initPairwiseHashes();
+    HashContext::instance().setSeeds(12345, 67890);
 
     std::vector<R1Tuple> R1;
+    R1.reserve(R1coords.size());
     for (auto& [a, b] : R1coords) {
-        R1.push_back({a, b, murmur_hash(a, murmurSeed1)});
+        R1.push_back({a, b, murmur_hash(a, HashContext::instance().seed1), 0.0});
     }
 
     std::vector<R2Tuple> R2;
+    R2.reserve(R2coords.size());
     for (auto& [b, c] : R2coords) {
-        R2.push_back({b, c, murmur_hash(c, murmurSeed2)});
+        R2.push_back({b, c, 0.0, murmur_hash(c, HashContext::instance().seed2)});
     }
 
     int groundTruth = groundTruthCalc(R1coords, R2coords);

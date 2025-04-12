@@ -45,7 +45,7 @@ TEST_CASE("CoordList Performance Benchmark, (single op, naive)", "[CoordListMatr
     }
 
     SECTION("Single matmul operation, large naive") {
-        benchmark_matmul_naive(100000, 50000, 100000, 0.005, "[naive matmul, medium]");
+        benchmark_matmul_naive(100000, 50000, 100000, 0.005, "[naive matmul, large]");
     }
 
 }

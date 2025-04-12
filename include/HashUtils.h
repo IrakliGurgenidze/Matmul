@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "HashContext.h"
 
 #ifndef HASHUTILS_H
 #define HASHUTILS_H
@@ -30,9 +31,5 @@ double murmur_hash(int x, uint64_t seed);
  * @return Hashed value of h1a and h2c, domain over [0,1)
  */
 double hashAC(double h1a, double h2c);
-
-// Global hash seeds shared across modules (initialized via initPairwiseHashes)
-extern uint64_t murmurSeed1;
-extern uint64_t murmurSeed2;
 
 #endif //HASHUTILS_H

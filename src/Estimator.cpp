@@ -15,13 +15,13 @@ static void combine(std::vector<ACpair> &S, std::vector<ACpair> &F) {
 
     std::nth_element(S.begin(), S.begin() + (K_VAL - 1), S.end(),
                      [](const ACpair &lhs, const ACpair &rhs) {
-                         return lhs.hashAC < rhs.hashAC;
+                         return lhs.hAC() < rhs.hAC();
                      });
 
-    double thresh = (S.begin() + (K_VAL - 1))->hashAC;
+    double thresh = (S.begin() + (K_VAL - 1))->hAC();
 
     auto mid = std::partition(S.begin(), S.end(), [&](const ACpair &x) {
-        return x.hashAC <= thresh;
+        return x.hAC() <= thresh;
     });
     S.erase(mid, S.end());
     if ((int)S.size() > K_VAL) {
@@ -38,17 +38,18 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
                          int k,
                          std::vector<ACpair> &S,
                          std::vector<ACpair> &F,
-                         std::vector<bool> &seen,
+                         std::unordered_set<uint64_t> &seen,
                          int maxC) {
+
 
     int Asize = A.size(); //cache a.size
     for (int t = 0; t < (int)C.size(); t++) { // loop through C
-        double cHash = C[t].h2c; //cache hash for col (yt)
+        double cHash = C[t].h2; //cache hash for col (yt)
         int s_bar = 0;
         // to find s_bar (starting row), find row in A w/ min hash value in this col (t)
         for (int s = 1; s < Asize; s++) {
-            double currH = hashAC(A[s].h1a, cHash); //hash (x_s_bar, y_t)
-            double prevH = hashAC(A[s_bar].h1a, cHash);
+            double currH = hashAC(A[s].h1, cHash); //hash (x_s_bar, y_t)
+            double prevH = hashAC(A[s_bar].h1, cHash);
             if (currH < prevH) { //find s_bar s.t. hash is min
                 s_bar  = s;
             }
@@ -57,15 +58,17 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
         for (int i = 0; i < Asize; i++) {
             // Find all s where h(x,y) < p
             int s = (s_bar + i) % Asize; // line 19 check, gives s->(s_bar + offset) mod |A| where
-            double h = hashAC(A[s].h1a, cHash); // get hash
+            double h = hashAC(A[s].h1, cHash); // get hash
             if (h >= p) break; // only do while hash < p
 
+            auto makeKey = [](int a, int c) {
+                return (static_cast<uint64_t>(a) << 32) | static_cast<uint32_t>(c);
+            };
             // check for dups using seen vector, calculate proper idx
-            int idx = A[s].a * (maxC + 1) + C[t].c;
-            if (!seen[idx]) {
-                seen[idx] = true;
+            uint64_t key = makeKey(A[s].x, C[t].y);
+            if (seen.insert(key).second) {
                 //push coord into F if not already
-                F.push_back({A[s].a, C[t].c, h});
+                F.push_back({A[s].x, C[t].y, A[s].h1, C[t].h2});
             }
 
             //When F reaches K capacity, combine, clear, update p locally
@@ -79,28 +82,32 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
 }
 
 
-double estimateProductSize(std::vector<R1Tuple> &R1,
-                           std::vector<R2Tuple> &R2,
+double estimateProductSize(const std::vector<HashCoord> &R1in,
+                           const std::vector<HashCoord> &R2in,
                            double epsilon) {
 
+
     K_VAL = static_cast<int>(9.0 / (epsilon * epsilon));
+    std::vector<HashCoord> R1 = R1in;   // local copies
+    std::vector<HashCoord> R2 = R2in;
+
     initPairwiseHashes();
 
     // Sort R1 and R2 by increasing join key (b), then by increasing hash value
     std::ranges::sort(R1, [](const R1Tuple &lhs, const R1Tuple &rhs) {
-        return lhs.b != rhs.b ? lhs.b < rhs.b : lhs.h1a < rhs.h1a;
+        return lhs.y != rhs.y ? lhs.y < rhs.y : lhs.h1 < rhs.h1;
     });
 
     std::ranges::sort(R2, [](const R2Tuple &lhs, const R2Tuple &rhs) {
-        return lhs.b != rhs.b ? lhs.b < rhs.b : lhs.h2c < rhs.h2c;
+        return lhs.x != rhs.x ? lhs.x < rhs.x : lhs.h2 < rhs.h2;
     });
 
     // Group R1 by b
     std::vector<std::pair<int, std::vector<R1Tuple>>> Ai;
     for (size_t i = 0; i < R1.size(); ) {
-        int currB = R1[i].b;
+        int currB = R1[i].y;
         size_t j = i;
-        while (j < R1.size() && R1[j].b == currB) j++;
+        while (j < R1.size() && R1[j].y == currB) j++;
         Ai.emplace_back(currB, std::vector(R1.begin() + i, R1.begin() + j));
         i = j;
     }
@@ -108,9 +115,9 @@ double estimateProductSize(std::vector<R1Tuple> &R1,
     // Group R2 by b
     std::vector<std::pair<int, std::vector<R2Tuple>>> Ci;
     for (size_t i = 0; i < R2.size(); ) {
-        int currB = R2[i].b;
+        int currB = R2[i].x;
         size_t j = i;
-        while (j < R2.size() && R2[j].b == currB) j++;
+        while (j < R2.size() && R2[j].x == currB) j++;
         Ci.emplace_back(currB, std::vector(R2.begin() + i, R2.begin() + j));
         i = j;
     }
@@ -127,21 +134,16 @@ double estimateProductSize(std::vector<R1Tuple> &R1,
     // p_val = std::min(1.0 / K_VAL, static_cast<double>(K_VAL) / maxProduct);
     */
 
-    std::vector<ACpair> S, F;
+    std::vector<HashCoord> S, F;
     S.reserve(K_VAL);
     F.reserve(K_VAL);
 
     // To check dupes, determine the max vals for a and c
     int maxA = 0, maxC = 0;
-    for (const auto &t : R1) {
-        if (t.a > maxA) maxA = t.a;
-    }
-    for (const auto &t : R2) {
-        if (t.c > maxC) maxC = t.c;
-    }
-    // Create a boolean vector with max cals for seen tracking
-    std::vector<bool> seen((maxA + 1) * (maxC + 1), false);
-
+    for (auto& t : R1) maxA = std::max(maxA, t.x);
+    for (auto& t : R2) maxC = std::max(maxC, t.y);
+    std::unordered_set<uint64_t> seen;
+    seen.reserve(static_cast<std::size_t>(R1.size() + R2.size()));
 
     size_t i = 0, j = 0;
     while (i < Ai.size() && j < Ci.size()) {

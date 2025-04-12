@@ -26,7 +26,7 @@ add_executable(tests
         ../src/CoordListMatrix.cpp
         TestCSRMatrix.cpp
         ../src/CSRMatrix.cpp
-        test_Estimator.cpp
+        TestEstimator.cpp
         ../src/Estimator.cpp
         # test_cardinality.cpp  # Add your test source files here
 )

@@ -50,14 +50,21 @@ class CoordListMatrix{
      */
     CoordListMatrix naiveMatmul(const CoordListMatrix &right);
 
+    CoordListMatrix optimizedMatmul(const CoordListMatrix &right, double epsilon);
+
+    const std::vector<HashCoord>& getHashedCoords() const;
+
+
     /**
      * @brief Returns the shape (numRows, numCols) of the matrix.
      * @return std::pair<int, int> representing (rows, cols)
      */
     [[nodiscard]] std::pair<int, int> shape() const;
 
+
   private:
     std::vector<Coord> coords;
+    std::vector<HashCoord> hashedCoords_;
     int M, N; // num rows, num cols
 };
 

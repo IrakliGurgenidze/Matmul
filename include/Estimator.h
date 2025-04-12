@@ -42,8 +42,8 @@ static void pointerSweep(const std::vector<R1Tuple> &A,
  *
  * @return Returns estimated number of non-zero values in product
  */
-double estimateProductSize(std::vector<R1Tuple> &R1,
-    std::vector<R2Tuple> &R2,
+double estimateProductSize(const std::vector<R1Tuple> &R1,
+    const std::vector<R2Tuple> &R2,
     double epsilon = 0.1);
 
 #endif //ESTIMATOR_H

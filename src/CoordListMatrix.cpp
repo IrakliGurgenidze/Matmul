@@ -1,4 +1,5 @@
 #include "../include/CoordListMatrix.h"
+#include "../include/Estimator.h"
 #include <fstream>
 #include <sstream>
 
@@ -28,6 +29,8 @@ CoordListMatrix::CoordListMatrix(const std::string &filename) : M(0), N(0){
         // Read nnz lines of "row col [value]"
         std::vector<Coord> coords;
         coords.reserve(nnz);
+        hashedCoords_.reserve(nnz);
+        auto& ctx = HashContext::instance();
 
         for (int i = 0; i < nnz; i++) {
             if (!std::getline(fin, line)) {
@@ -40,7 +43,7 @@ CoordListMatrix::CoordListMatrix(const std::string &filename) : M(0), N(0){
             std::stringstream ssl(line);
             int r, c;
             double val;
-            ssl >> r >> c >> val;
+            ssl >> r >> c;
             if (ssl.fail()) {
                 throw std::runtime_error("Couldn't parse a nonzero line: " + line);
             }
@@ -51,6 +54,7 @@ CoordListMatrix::CoordListMatrix(const std::string &filename) : M(0), N(0){
 
             if (val != 0.0) {
                 coords.push_back({r, c});
+                hashedCoords_.push_back({r,c, murmur_hash(r, ctx.seed1), murmur_hash(c, ctx.seed2)});
             }
         }
         this->coords = coords;
@@ -70,11 +74,24 @@ CoordListMatrix::CoordListMatrix(const std::vector<Coord>& coords, int M, int N)
             throw std::out_of_range("Coordinate is out of matrix bounds.");
         }
     }
+
+    auto& ctx = HashContext::instance();
+    hashedCoords_.reserve(coords.size());
+    for (auto& p : coords) {
+        hashedCoords_.push_back({
+                                        p.row, p.col,
+                                        murmur_hash(p.row, ctx.seed1),
+                                        murmur_hash(p.col, ctx.seed2)
+                                });
+    }
 }
 
 std::vector<Coord>& CoordListMatrix::getCoords() {
     return coords;
 }
+
+const std::vector<HashCoord>& CoordListMatrix::getHashedCoords() const { return hashedCoords_; }
+
 
 CoordListMatrix CoordListMatrix::naiveMatmul(const CoordListMatrix &right) {
     if (this->N != right.M) {
@@ -128,6 +145,7 @@ CoordListMatrix CoordListMatrix::naiveMatmul(const CoordListMatrix &right) {
 
     return outMatrix;
 }
+
 
 std::pair<int, int> CoordListMatrix::shape() const {
     return {this->M, this->N};
