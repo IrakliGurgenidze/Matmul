@@ -50,8 +50,24 @@ class CoordListMatrix{
      */
     CoordListMatrix naiveMatmul(const CoordListMatrix &right);
 
-    CoordListMatrix optimizedMatmul(const CoordListMatrix &right, double epsilon);
+    /**
+     * @brief Performs optimized (with estimation) sparse matrix multiplication with this matrix on the left.
+     *
+     * Multiplies the current matrix (as left operand) with the given matrix `right`,
+     * returning the coordinate list of the result.
+     *
+     * @param right The right-hand matrix in the multiplication (this × right)
+     * @return CoordListMatrix representing the product
+     *
+     * @throws std::invalid_argument on matrix dimension mismatch.
+     */
+    CoordListMatrix optimizedMatmul(const CoordListMatrix &right, double estimation);
 
+
+    /**
+    * @brief Returns a vector of non-zero (row, col) coordinates with their respective hash values.
+    * @return Reference to the internal vector of HashCoord entries.
+    */
     const std::vector<HashCoord>& getHashedCoords() const;
 
 

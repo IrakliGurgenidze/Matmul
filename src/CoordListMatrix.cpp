@@ -43,7 +43,7 @@ CoordListMatrix::CoordListMatrix(const std::string &filename) : M(0), N(0){
             std::stringstream ssl(line);
             int r, c;
             double val;
-            ssl >> r >> c;
+            ssl >> r >> c >> val;
             if (ssl.fail()) {
                 throw std::runtime_error("Couldn't parse a nonzero line: " + line);
             }
@@ -146,6 +146,60 @@ CoordListMatrix CoordListMatrix::naiveMatmul(const CoordListMatrix &right) {
     return outMatrix;
 }
 
+CoordListMatrix CoordListMatrix::optimizedMatmul(const CoordListMatrix &right, double estimate) {
+    if (this->N != right.M) {
+        throw std::invalid_argument("Matrix dimensions do not align.");
+    }
+
+    // Check for matrix dimension mismatch
+    auto [rowsA, colsA] = this->shape();
+    auto [rowsB, colsB] = right.shape();
+    if (colsA != rowsB) {
+        throw std::invalid_argument("matmul dimension mismatch: "
+                                    "Left cols (" + std::to_string(colsA) + ") != Right rows (" + std::to_string(rowsB) + ")");
+    }
+
+    // Preallocate the result coordinate vector using the externally provided estimate
+    std::vector<Coord> resultCoords;
+    resultCoords.reserve(static_cast<size_t>(estimate));
+
+    // Build row-based adjacency
+    std::vector<std::vector<int>> rowA(rowsA);
+    for (const auto &c : this->coords) {
+        rowA[c.row].push_back(c.col);
+    }
+
+    std::vector<std::vector<int>> rowB(rowsB);
+    for (const auto &c : right.coords) {
+        rowB[c.row].push_back(c.col);
+    }
+
+    std::vector<std::unordered_set<int>> resSets(rowsA);
+    for (int i = 0; i < rowsA; i++) {
+        for (int j : rowA[i]) {
+            if (j >= 0 && j < rowsB) {
+                for (int k : rowB[j]) {
+                    resSets[i].insert(k);
+                }
+            }
+        }
+    }
+
+
+    for (int i = 0; i < rowsA; i++) {
+        for (int k : resSets[i]) {
+            resultCoords.push_back({i, k});
+        }
+    }
+
+    // Build and return the output CoordListMatrix
+    CoordListMatrix outMatrix = *this;
+    outMatrix.coords = std::move(resultCoords);
+    outMatrix.M = rowsA;
+    outMatrix.N = colsB;
+
+    return outMatrix;
+}
 
 std::pair<int, int> CoordListMatrix::shape() const {
     return {this->M, this->N};
