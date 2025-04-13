@@ -218,8 +218,6 @@ TEST_CASE("CSR Scaling Sweep (single op, optimized)", "[benchmark]") {
   int end_N = 100000;
   int step = 10000;
 
-  // int start_` 1000;
-
   for (int N = start_N; N <= end_N; N += step) {
     int M = N;
     int K = N; // or N, if you want square multiplications
@@ -229,19 +227,12 @@ TEST_CASE("CSR Scaling Sweep (single op, optimized)", "[benchmark]") {
   }
 }
 
-
-
 TEST_CASE("CSR Scaling Sweep (batched naive)", "[benchmark][batch]") {
   double sparsity = 0.00005;
   int start_N = 10000;
   int end_N = 100000;
   int step = 10000;
   int numMats = 20; // Number of right-hand matrices in each batch
-
-
-  // int start_N = 1000;
-  // int end_N = 10000;
-  // int step = 1000;
 
   for (int N = start_N; N <= end_N; N += step) {
     std::string label = "[batched-naive-sweep N=" + std::to_string(N) + "]";
@@ -255,10 +246,6 @@ TEST_CASE("CSR Scaling Sweep (batched optimized)", "[benchmark][batch]") {
   int end_N = 100000;
   int step = 10000;
   int numMats = 20; // Number of right-hand matrices in each batch
-
-  // int start_N = 1000;
-  // int end_N = 10000;
-  // int step = 1000;
 
   for (int N = start_N; N <= end_N; N += step) {
     std::string label = "[batched-optimized-sweep N=" + std::to_string(N) + "]";

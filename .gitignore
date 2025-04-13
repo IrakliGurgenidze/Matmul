@@ -54,3 +54,6 @@ test_output/
 
 # Catch2 test builds
 Catch2-build/
+
+# Output folder
+output/
