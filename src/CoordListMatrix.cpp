@@ -143,9 +143,9 @@ CoordListMatrix::naiveMatmul(const CoordListMatrix &right) const {
 
 CoordListMatrix CoordListMatrix::optimizedMatmul(const CoordListMatrix &right,
                                                  double estimation) {
-  // if (this->N != right.M) {
-  //     throw std::invalid_argument("Matrix dimensions do not align.");
-  // }
+  if (this->N != right.M) {
+      throw std::invalid_argument("Matrix dimensions do not align.");
+  }
 
   // Check for matrix dimension mismatch
   auto [rowsA, colsA] = this->shape();
@@ -225,7 +225,11 @@ std::vector<CoordListMatrix> CoordListMatrix::batchedNaiveMatmul(
 std::vector<CoordListMatrix> CoordListMatrix::batchOptimizedMatmul(
     const std::vector<CoordListMatrix> &rights, double epsilon) const {
 
-  // TODO verify matrix dims line up
+  for (const auto &right : rights) {
+    if (this->N != right.shape().first) {
+      throw std::invalid_argument("Dimension mismatch in batchOptimizedMatmul");
+    }
+  }
 
   std::vector<CoordListMatrix> results;
   results.reserve(rights.size());
@@ -238,10 +242,6 @@ std::vector<CoordListMatrix> CoordListMatrix::batchOptimizedMatmul(
 
   // Process each right matrix in the batch
   for (const auto &right : rights) {
-    if (this->N != right.M) {
-      throw std::invalid_argument(
-          "Dimension mismatch in optimized batch multiplication.");
-    }
     auto [rowsB, colsB] = right.shape();
 
     std::vector<std::vector<int>> rightGroups(right.M);
@@ -260,8 +260,7 @@ std::vector<CoordListMatrix> CoordListMatrix::batchOptimizedMatmul(
 
     // Instead of iterating by left row (as in naive), iterate over join keys
     // directly
-    size_t numJoinKeys = std::min(leftGroups.size(), rightGroups.size());
-    for (size_t joinKey = 0; joinKey < numJoinKeys; joinKey++) {
+    for (size_t joinKey = 0; joinKey < this->N; joinKey++) {
       if (!leftGroups[joinKey].empty() && !rightGroups[joinKey].empty()) {
         for (int leftRow : leftGroups[joinKey]) {
           for (int rightCol : rightGroups[joinKey]) {
