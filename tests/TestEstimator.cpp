@@ -115,10 +115,10 @@ TEST_CASE("Estimator returns accurate value when sketch fills",
 }
 
 TEST_CASE("Estimator run time", "[Estimator][Benchmark]") {
-  double sparsity = 0.0005;
+  double sparsity = 0.00005;
   int start_N = 10000;
-  int end_N = 40000;
-  int step = 2000;
+  int end_N = 250000;
+  int step = 10000;
 
   for (int N = start_N; N <= end_N; N += step) {
     int M = N;

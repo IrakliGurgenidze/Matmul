@@ -199,7 +199,7 @@ CoordListMatrix CoordListMatrix::optimizedMatmul(const CoordListMatrix &right,
   return outMatrix;
 }
 
-std::vector<CoordListMatrix> CoordListMatrix::batchedNaiveMatmul(
+std::vector<CoordListMatrix> CoordListMatrix::batchNaiveMatmul(
     const std::vector<CoordListMatrix> &rights) const {
   auto [rowsA, colsA] = this->shape();
 

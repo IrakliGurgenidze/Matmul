@@ -207,3 +207,103 @@ TEST_CASE("CoordListMatrix optimized matmul Trec4(2×3) vs Trec5(3×7)", "[Coord
     }
 }
 
+
+TEST_CASE("CoordListMatrix batched naive matmul", "[CoordListMatrix]") {
+    double sparsity = 0.01;
+    int N = 100;
+    int numMats = 5;
+
+    SECTION("Dimension error thrown") {
+        CoordListMatrix A(generateSparseMatrix(sparsity, N, N, 1), N, N);
+
+        // First right matrix is valid, second has mismatched dimensions
+        std::vector<CoordListMatrix> rights;
+        rights.emplace_back(generateSparseMatrix(sparsity, N, N, 2), N, N);
+        rights.emplace_back(generateSparseMatrix(sparsity, N + 1, N, 3), N + 1, N); // Invalid
+
+        REQUIRE_THROWS_AS(A.batchNaiveMatmul(rights), std::invalid_argument);
+    }
+
+    SECTION("Correctness check") {
+        CoordListMatrix A(generateSparseMatrix(sparsity, N, N, 1), N, N);
+
+        std::vector<CoordListMatrix> rights;
+        for (int i = 0; i < numMats; ++i) {
+            rights.emplace_back(generateSparseMatrix(sparsity, N, N, 100 + i), N, N);
+        }
+
+        auto results = A.batchNaiveMatmul(rights);
+
+        REQUIRE(results.size() == rights.size());
+
+        for (size_t i = 0; i < rights.size(); ++i) {
+            CoordListMatrix expected = A.naiveMatmul(rights[i]);
+
+            auto expectedCoords = expected.getCoords();
+            auto actualCoords = results[i].getCoords();
+
+            auto coordSorter = [](const Coord &a, const Coord &b) {
+                return (a.row != b.row) ? (a.row < b.row) : (a.col < b.col);
+            };
+
+            std::sort(expectedCoords.begin(), expectedCoords.end(), coordSorter);
+            std::sort(actualCoords.begin(), actualCoords.end(), coordSorter);
+
+            REQUIRE(expectedCoords.size() == actualCoords.size());
+            for (size_t j = 0; j < expectedCoords.size(); ++j) {
+                CHECK(expectedCoords[j].row == actualCoords[j].row);
+                CHECK(expectedCoords[j].col == actualCoords[j].col);
+            }
+        }
+    }
+}
+
+TEST_CASE("CoordListMatrix batched optimized matmul", "[CoordListMatrix]") {
+    double sparsity = 0.01;
+    int N = 100;
+    int numMats = 5;
+
+    SECTION("Dimension error thrown") {
+        CoordListMatrix A(generateSparseMatrix(sparsity, N, N, 1), N, N);
+
+        // First right matrix is valid, second has mismatched dimensions
+        std::vector<CoordListMatrix> rights;
+        rights.emplace_back(generateSparseMatrix(sparsity, N, N, 2), N, N);
+        rights.emplace_back(generateSparseMatrix(sparsity, N + 1, N, 3), N + 1, N); // Invalid
+
+        REQUIRE_THROWS_AS(A.batchOptimizedMatmul(rights), std::invalid_argument);
+    }
+
+    SECTION("Correctness check") {
+        CoordListMatrix A(generateSparseMatrix(sparsity, N, N, 1), N, N);
+
+        std::vector<CoordListMatrix> rights;
+        for (int i = 0; i < numMats; ++i) {
+            rights.emplace_back(generateSparseMatrix(sparsity, N, N, 100 + i), N, N);
+        }
+
+        auto results = A.batchOptimizedMatmul(rights);
+
+        REQUIRE(results.size() == rights.size());
+
+        for (size_t i = 0; i < rights.size(); ++i) {
+            CoordListMatrix expected = A.naiveMatmul(rights[i]);
+
+            auto expectedCoords = expected.getCoords();
+            auto actualCoords = results[i].getCoords();
+
+            auto coordSorter = [](const Coord &a, const Coord &b) {
+                return (a.row != b.row) ? (a.row < b.row) : (a.col < b.col);
+            };
+
+            std::sort(expectedCoords.begin(), expectedCoords.end(), coordSorter);
+            std::sort(actualCoords.begin(), actualCoords.end(), coordSorter);
+
+            REQUIRE(expectedCoords.size() == actualCoords.size());
+            for (size_t j = 0; j < expectedCoords.size(); ++j) {
+                CHECK(expectedCoords[j].row == actualCoords[j].row);
+                CHECK(expectedCoords[j].col == actualCoords[j].col);
+            }
+        }
+    }
+}
