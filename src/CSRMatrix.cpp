@@ -245,7 +245,7 @@ CSRMatrix CSRMatrix::optimizedMatmul(const CSRMatrix &right, double estimate) {
   return result;
 }
 
-std::vector<CSRMatrix> CSRMatrix::batchedNaiveMatmul(
+std::vector<CSRMatrix> CSRMatrix::batchNaiveMatmul(
     const std::vector<CSRMatrix> &rights) const {
   auto [rowsA, colsA] = this->shape();
 

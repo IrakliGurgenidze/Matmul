@@ -70,7 +70,7 @@ public:
 
 
   [[nodiscard]] std::vector<CSRMatrix>
-  batchedNaiveMatmul(const std::vector<CSRMatrix> &rights) const;
+  batchNaiveMatmul(const std::vector<CSRMatrix> &rights) const;
 
 
   [[nodiscard]] std::vector<CSRMatrix>
