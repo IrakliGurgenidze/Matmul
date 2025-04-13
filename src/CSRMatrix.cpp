@@ -1,5 +1,6 @@
 #include "../include/CSRMatrix.h"
 #include <algorithm>
+#include <Estimator.h>
 #include <fstream>
 #include <sstream>
 
@@ -140,7 +141,7 @@ std::vector<Coord> CSRMatrix::getCoords() const {
   return coords;
 }
 
-CSRMatrix CSRMatrix::naiveMatmul(const CSRMatrix &right) {
+CSRMatrix CSRMatrix::naiveMatmul(const CSRMatrix &right) const {
   // Check for matrix dimension mismatch
   auto [rowsA, colsA] = this->shape();
   auto [rowsB, colsB] = right.shape();
@@ -243,5 +244,94 @@ CSRMatrix CSRMatrix::optimizedMatmul(const CSRMatrix &right, double estimate) {
 
   return result;
 }
+
+std::vector<CSRMatrix> CSRMatrix::batchedNaiveMatmul(
+    const std::vector<CSRMatrix> &rights) const {
+  auto [rowsA, colsA] = this->shape();
+
+  // Validate all matrix dimensions first
+  for (const auto &right : rights) {
+    if (colsA != right.shape().first) {
+      throw std::invalid_argument(
+          "Dimension mismatch in naive batch multiplication.");
+    }
+  }
+
+  std::vector<CSRMatrix> results;
+  results.reserve(rights.size());
+
+  // Now safe to run all multiplications
+  for (const auto &right : rights) {
+    results.push_back(this->naiveMatmul(right));
+  }
+
+  return results;
+}
+
+
+
+std::vector<CSRMatrix> CSRMatrix::batchOptimizedMatmul(
+    const std::vector<CSRMatrix> &rights, double epsilon) const {
+
+  for (const auto &right : rights) {
+    if (this->N != right.shape().first) {
+      throw std::invalid_argument("Dimension mismatch in batchOptimizedMatmul");
+    }
+  }
+
+  std::vector<CSRMatrix> results;
+  results.reserve(rights.size());
+
+  std::vector<std::vector<int>> leftGroups(this->N);
+
+  for (int row = 0; row < this->M; ++row) {
+    for (int idx = rowPtr[row]; idx < rowPtr[row + 1]; ++idx) {
+      int col = colIdx[idx];
+      leftGroups[col].push_back(row);
+    }
+  }
+
+  // Process each right matrix in the batch
+  for (const auto &right : rights) {
+    std::vector<std::vector<int>> rightGroups(right.M);
+    for (int row = 0; row < right.M; ++row) {
+      for (int idx = right.rowPtr[row]; idx < right.rowPtr[row+1]; ++idx) {
+        int col = right.colIdx[idx];
+        rightGroups[row].push_back(col);
+      }
+    }
+
+    CoordListMatrix forEstimateA(this->getCoords(), this->M, this->N);
+    auto [rightM, rightN] = right.shape();
+    CoordListMatrix forEstimateB(right.getCoords(), rightM, rightN);
+
+    // Call the estimator for the current left/right pair
+    // The estimator uses the hashed coordinates from each matrix
+    double estimatedJoinSize = estimateProductSize(
+            forEstimateA.getHashedCoords(), forEstimateB.getHashedCoords(), epsilon);
+
+    // Preallocate storage for the join result using the estimated join size.
+    std::vector<Coord> resultCoords;
+    resultCoords.reserve(static_cast<size_t>(estimatedJoinSize));
+
+    // Instead of iterating by left row (as in naive), iterate over join keys
+    // directly
+    for (size_t joinKey = 0; joinKey < this->N; joinKey++) {
+      if (!leftGroups[joinKey].empty() && !rightGroups[joinKey].empty()) {
+        for (int leftRow : leftGroups[joinKey]) {
+          for (int rightCol : rightGroups[joinKey]) {
+            resultCoords.push_back({leftRow, rightCol});
+          }
+        }
+      }
+    }
+
+    results.emplace_back(resultCoords, this->M, right.N);
+
+  }
+  return results;
+}
+
+
 
 std::pair<int, int> CSRMatrix::shape() const { return {this->M, this->N}; }

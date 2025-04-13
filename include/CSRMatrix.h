@@ -1,6 +1,8 @@
 #ifndef CSRMATRIX_H
 #define CSRMATRIX_H
 
+#include <CoordListMatrix.h>
+
 #include "Types.h"
 #include <string>
 #include <vector>
@@ -50,7 +52,7 @@ public:
    *
    * @throws std::invalid_argument on matrix dimension mismatch.
    */
-  CSRMatrix naiveMatmul(const CSRMatrix &right);
+  CSRMatrix naiveMatmul(const CSRMatrix &right) const;
 
   /**
    * @brief Performs optimized (with estimation) sparse matrix multiplication
@@ -65,6 +67,15 @@ public:
    * @throws std::invalid_argument on matrix dimension mismatch.
    */
   CSRMatrix optimizedMatmul(const CSRMatrix &right, double estimate);
+
+
+  [[nodiscard]] std::vector<CSRMatrix>
+  batchedNaiveMatmul(const std::vector<CSRMatrix> &rights) const;
+
+
+  [[nodiscard]] std::vector<CSRMatrix>
+  batchOptimizedMatmul(const std::vector<CSRMatrix> &rights,
+                       double epsilon = 0.1) const;
 
   /**
    * @brief Returns the shape (numRows, numCols) of the matrix.
