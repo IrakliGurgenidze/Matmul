@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstdint>
 #include "HashContext.h"
+#include <cstdint>
 
 #ifndef HASHUTILS_H
 #define HASHUTILS_H
@@ -14,7 +14,8 @@ extern const uint64_t PRIME;
 void initPairwiseHashes();
 
 /**
- * @brief Applies MurmurHash3_x86_32 to integer x with given seed and maps to [0, 1).
+ * @brief Applies MurmurHash3_x86_32 to integer x with given seed and maps to
+ * [0, 1).
  * @param x Integer input to hash
  * @param seed A 64-bit seed for hash function randomization
  *
@@ -32,4 +33,4 @@ double murmur_hash(int x, uint64_t seed);
  */
 double hashAC(double h1a, double h2c);
 
-#endif //HASHUTILS_H
+#endif // HASHUTILS_H
