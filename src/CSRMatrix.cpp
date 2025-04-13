@@ -9,6 +9,15 @@ static bool compareRowCol(const Coord &a, const Coord &b) {
   return a.row != b.row ? a.row < b.row : a.col < b.col;
 }
 
+static std::vector<int> visited;
+
+inline void ensureVisitedSize( int numCols) {
+  if (static_cast<int>(visited.size()) < numCols) {
+    visited.assign(numCols, -1);
+  }
+}
+
+
 CSRMatrix::CSRMatrix(const std::string &filename) {
   std::ifstream fin(filename);
   if (!fin.is_open()) {
@@ -142,7 +151,6 @@ std::vector<Coord> CSRMatrix::getCoords() const {
 }
 
 CSRMatrix CSRMatrix::naiveMatmul(const CSRMatrix &right) const {
-  // Check for matrix dimension mismatch
   auto [rowsA, colsA] = this->shape();
   auto [rowsB, colsB] = right.shape();
   if (colsA != rowsB) {
@@ -152,45 +160,43 @@ CSRMatrix CSRMatrix::naiveMatmul(const CSRMatrix &right) const {
                                 std::to_string(rowsB) + ")");
   }
 
+  // Row Pointers
   std::vector<int> resultRowPtr(rowsA + 1, 0);
-  std::vector<std::unordered_set<int>> resSets(rowsA);
+  // Column Indices
+  std::vector<int> resultColIdx;
+  // Reserve space of last row val
+  resultColIdx.reserve(resultRowPtr.back());
+
+  // std::vector<std::unordered_set<int>> resSets(rowsA);
+  ensureVisitedSize(colsB);
 
   for (int i = 0; i < rowsA; ++i) {
+    const size_t before = resultColIdx.size();
+
     for (int aPos = rowPtr[i]; aPos < rowPtr[i + 1]; ++aPos) {
       // column index in A = row index in B
       int j = colIdx[aPos];
 
       for (int bPos = right.rowPtr[j]; bPos < right.rowPtr[j + 1]; ++bPos) {
         int k = right.colIdx[bPos];
-        resSets[i].insert(k);
+        if (visited[k] != i) {
+          visited[k] = i;
+          resultColIdx.push_back(k);
+        }
       }
     }
-    resultRowPtr[i + 1] = static_cast<int>(resSets[i].size());
-  }
-
-  // prefix sum to finalize resultRowPtr
-  for (int i = 0; i < rowsA; ++i) {
-    resultRowPtr[i + 1] += resultRowPtr[i];
-  }
-
-  std::vector<int> resultColIdx;
-  // Reserve space of last row val
-  resultColIdx.reserve(resultRowPtr.back());
-
-  // flatten resSets into colIdx
-  for (int i = 0; i < rowsA; ++i) {
-    for (int k : resSets[i]) {
-      resultColIdx.push_back(k);
-    }
+    std::sort(resultColIdx.begin() + before, resultColIdx.end());
+    resultRowPtr[i + 1] = static_cast<int>(resultColIdx.size());
   }
 
   CSRMatrix result = *this;
   result.M = rowsA;
   result.N = colsB;
-  result.rowPtr = resultRowPtr;
-  result.colIdx = resultColIdx;
+  result.rowPtr = std::move(resultRowPtr);
+  result.colIdx = std::move(resultColIdx);
 
   return result;
+
 }
 
 CSRMatrix CSRMatrix::optimizedMatmul(const CSRMatrix &right, double estimate) {
@@ -204,43 +210,41 @@ CSRMatrix CSRMatrix::optimizedMatmul(const CSRMatrix &right, double estimate) {
                                 std::to_string(rowsB) + ")");
   }
 
+  // Row Pointers
   std::vector<int> resultRowPtr(rowsA + 1, 0);
-  std::vector<std::unordered_set<int>> resSets(rowsA);
+  // Column Indices
+  std::vector<int> resultColIdx;
+  // Reserve space of last row val
+  resultColIdx.reserve(static_cast<size_t>(estimate));
+
+  // std::vector<std::unordered_set<int>> resSets(rowsA);
+  ensureVisitedSize(colsB);
+
 
   for (int i = 0; i < rowsA; ++i) {
+    const size_t before = resultColIdx.size();
+
     for (int aPos = rowPtr[i]; aPos < rowPtr[i + 1]; ++aPos) {
       // column index in A = row index in B
       int j = colIdx[aPos];
 
       for (int bPos = right.rowPtr[j]; bPos < right.rowPtr[j + 1]; ++bPos) {
         int k = right.colIdx[bPos];
-        resSets[i].insert(k);
+        if (visited[k] != i) {
+          visited[k] = i;
+          resultColIdx.push_back(k);
+        }
       }
     }
-    resultRowPtr[i + 1] = static_cast<int>(resSets[i].size());
-  }
-
-  // prefix sum to finalize resultRowPtr
-  for (int i = 0; i < rowsA; ++i) {
-    resultRowPtr[i + 1] += resultRowPtr[i];
-  }
-
-  std::vector<int> resultColIdx;
-  // Reserve space of last row val
-  resultColIdx.reserve(static_cast<size_t>(estimate));
-
-  // flatten resSets into colIdx
-  for (int i = 0; i < rowsA; ++i) {
-    for (int k : resSets[i]) {
-      resultColIdx.push_back(k);
-    }
+    std::sort(resultColIdx.begin() + before, resultColIdx.end());
+    resultRowPtr[i + 1] = static_cast<int>(resultColIdx.size());
   }
 
   CSRMatrix result = *this;
   result.M = rowsA;
   result.N = colsB;
-  result.rowPtr = resultRowPtr;
-  result.colIdx = resultColIdx;
+  result.rowPtr = std::move(resultRowPtr);
+  result.colIdx = std::move(resultColIdx);
 
   return result;
 }

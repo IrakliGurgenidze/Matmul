@@ -183,17 +183,23 @@ TEST_CASE("CSR Performance Benchmark, (single op, naive)",
                            "[naive matmul, medium]");
   }
 
-  SECTION("Single matmul operation, large naive") {
-    benchmarkCSRMatmulNaive(300000, 300000, 3000000, 0.0005,
-                           "[naive matmul, large]");
-  }
+  // SECTION("Single matmul operation, large naive") {
+  //   benchmarkCSRMatmulNaive(300000, 300000, 3000000, 0.0005,
+  //                          "[naive matmul, large]");
+  // }
 }
 
 TEST_CASE("CSR Scaling Sweep (single op, naive)", "[benchmark]") {
-  double sparsity = 0.001;
+  // double sparsity = 0.001;
+  double sparsity = 0.0005;
+
   int start_N = 10000;
   int end_N = 100000;
   int step = 10000;
+
+  // int start_N = 1000;
+  // int end_N = 10000;
+  // int step = 1000;
 
   for (int N = start_N; N <= end_N; N += step) {
     int M = N;
@@ -205,10 +211,14 @@ TEST_CASE("CSR Scaling Sweep (single op, naive)", "[benchmark]") {
 }
 
 TEST_CASE("CSR Scaling Sweep (single op, optimized)", "[benchmark]") {
-  double sparsity = 0.001;
+  // double sparsity = 0.001;
+  double sparsity = 0.0005;
+
   int start_N = 10000;
   int end_N = 100000;
   int step = 10000;
+
+  // int start_` 1000;
 
   for (int N = start_N; N <= end_N; N += step) {
     int M = N;
@@ -228,6 +238,11 @@ TEST_CASE("CSR Scaling Sweep (batched naive)", "[benchmark][batch]") {
   int step = 10000;
   int numMats = 20; // Number of right-hand matrices in each batch
 
+
+  // int start_N = 1000;
+  // int end_N = 10000;
+  // int step = 1000;
+
   for (int N = start_N; N <= end_N; N += step) {
     std::string label = "[batched-naive-sweep N=" + std::to_string(N) + "]";
     benchmarkCSRBatchedMatmulNaive(N, sparsity, numMats, label, true);
@@ -240,6 +255,10 @@ TEST_CASE("CSR Scaling Sweep (batched optimized)", "[benchmark][batch]") {
   int end_N = 100000;
   int step = 10000;
   int numMats = 20; // Number of right-hand matrices in each batch
+
+  // int start_N = 1000;
+  // int end_N = 10000;
+  // int step = 1000;
 
   for (int N = start_N; N <= end_N; N += step) {
     std::string label = "[batched-optimized-sweep N=" + std::to_string(N) + "]";
