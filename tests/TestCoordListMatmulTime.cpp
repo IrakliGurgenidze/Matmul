@@ -219,7 +219,7 @@ TEST_CASE("CoordList Scaling Sweep (batched naive)", "[benchmark][batch]") {
   int start_N = 10000;
   int end_N = 100000;
   int step = 10000;
-  int numMats = 10; // Number of right-hand matrices in each batch
+  int numMats = 20; // Number of right-hand matrices in each batch
 
   for (int N = start_N; N <= end_N; N += step) {
     std::string label = "[batched-naive-sweep N=" + std::to_string(N) + "]";
@@ -232,7 +232,7 @@ TEST_CASE("CoordList Scaling Sweep (batched optimized)", "[benchmark][batch]") {
   int start_N = 10000;
   int end_N = 100000;
   int step = 10000;
-  int numMats = 10; // Number of right-hand matrices in each batch
+  int numMats = 20; // Number of right-hand matrices in each batch
 
   for (int N = start_N; N <= end_N; N += step) {
     std::string label = "[batched-optimized-sweep N=" + std::to_string(N) + "]";
