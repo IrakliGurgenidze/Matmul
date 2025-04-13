@@ -81,7 +81,7 @@ public:
    * @throws std::invalid_argument on matrix dimension mismatch.
    */
   [[nodiscard]] std::vector<CoordListMatrix>
-  batchedNaiveMatmul(const std::vector<CoordListMatrix> &rights) const;
+  batchNaiveMatmul(const std::vector<CoordListMatrix> &rights) const;
 
   /**
    * @brief Performs optimized (with estimation) sparse matrix multiplication
