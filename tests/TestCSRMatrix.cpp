@@ -1,5 +1,7 @@
 #define CATCH_CONFIG_MAIN
 
+#include <CoordListMatrix.h>
+#include <Estimator.h>
 #include <catch2/catch_test_macros.hpp>
 
 #include "../include/CSRMatrix.h"
@@ -8,50 +10,8 @@
 #include <fstream>
 
 
-// Helper function to create a small test matrix file
-void CSRTestCreateTestMatrixFileA(const std::string& filename) {
-    std::ofstream fout(filename);
-    if (!fout.is_open()) {
-        throw std::runtime_error("Failed to open file A.");
-    }
-    fout << "2 3 3\n";
-    fout << "1 2 3\n";
-    fout << "2 2 2\n";
-    fout << "2 3 1\n";
-    fout.close();
-}
-
-// Helper function to create a small test matrix file
-void CSRTestCreateTestMatrixFileB(const std::string& filename) {
-    std::ofstream fout(filename);
-    if (!fout.is_open()) {
-        throw std::runtime_error("Failed to open file B.");
-    }
-
-    // M=3, N=7, NNZ=12
-    fout << "3 7 12\n";
-
-    // 1-based (row, col, val) lines
-    fout << "1 2 4\n";
-    fout << "2 2 1\n";
-    fout << "1 3 3\n";
-    fout << "2 3 1\n";
-    fout << "3 3 1\n";
-    fout << "2 4 1\n";
-    fout << "3 4 2\n";
-    fout << "2 5 2\n";
-    fout << "3 5 2\n";
-    fout << "2 6 2\n";
-    fout << "3 6 1\n";
-    fout << "3 7 1\n";
-
-    fout.close();
-}
-
-
 TEST_CASE("CSRMatrix constructor and getCSR", "[CSRMatrix]") {
     const std::string filenameA = "Trec4.mtx";
-    CSRTestCreateTestMatrixFileA(filenameA);
 
     CSRMatrix csr(filenameA);
 
@@ -169,14 +129,65 @@ TEST_CASE("CSRMatrix naiveMatmul dimensions match", "[CSRMatrix]") {
 TEST_CASE("CSRMatrix naiveMatmul", "[CSRMatrix]") {
     const std::string fileT4 = "Trec4.mtx";
     const std::string fileT5 = "Trec5.mtx";
-    CSRTestCreateTestMatrixFileA(fileT4);
-    CSRTestCreateTestMatrixFileB(fileT5);
+
 
     CSRMatrix A(fileT4);
     CSRMatrix B(fileT5);
 
     // Multiply AxB => shape 2x7
     CSRMatrix C = A.naiveMatmul(B);
+    auto [rowsC, colsC] = C.shape();
+
+    REQUIRE(rowsC == 2);
+    REQUIRE(colsC == 7);
+
+    std::vector<Coord> expectedCoords = {
+        // row=0
+        {0,1},{0,2},{0,3},{0,4},{0,5},
+        // row=1
+        {1,1},{1,2},{1,3},{1,4},{1,5},{1,6}
+    };
+
+    std::vector<Coord> actualCoords = C.getCoords();
+
+    // Sort them to match expectedCoords format
+    auto coordSorter = [](const Coord &a, const Coord &b) {
+        if (a.row != b.row) return a.row < b.row;
+        return a.col < b.col;
+    };
+    std::sort(actualCoords.begin(), actualCoords.end(), coordSorter);
+    std::sort(expectedCoords.begin(), expectedCoords.end(), coordSorter);
+
+    REQUIRE(actualCoords.size() == expectedCoords.size());
+
+    for (size_t i = 0; i < expectedCoords.size(); i++) {
+        CHECK(actualCoords[i].row == expectedCoords[i].row);
+        CHECK(actualCoords[i].col == expectedCoords[i].col);
+    }
+}
+
+
+
+TEST_CASE("CSRMatrix optimizedMatmul", "[CSRMatrix]") {
+    const std::string fileT4 = "Trec4.mtx";
+    const std::string fileT5 = "Trec5.mtx";
+
+    // create estimate through two CoordList representations???
+    CoordListMatrix matrix1(fileT4);
+    CoordListMatrix matrix2(fileT5);
+
+    auto R1Tuples = matrix1.getHashedCoords();
+    auto R2Tuples = matrix2.getHashedCoords();
+
+    // Estimate join-project size
+    double estimate = estimateProductSize(R1Tuples, R2Tuples, 0.1);
+
+    // two CSR matrices initialized with files
+    CSRMatrix A(fileT4);
+    CSRMatrix B(fileT5);
+
+    // Multiply AxB => shape 2x7
+    CSRMatrix C = A.optimizedMatmul(B, estimate);
     auto [rowsC, colsC] = C.shape();
 
     REQUIRE(rowsC == 2);

@@ -1,5 +1,6 @@
 #define CATCH_CONFIG_MAIN
 
+#include <Estimator.h>
 #include <catch2/catch_test_macros.hpp>
 
 #include "../include/CoordListMatrix.h"
@@ -8,51 +9,9 @@
 #include <MatrixUtils.h>
 
 
-// Helper function to create a small test matrix file
-void createTestMatrixFileA(const std::string& filename) {
-  std::ofstream fout(filename);
-  if (!fout.is_open()) {
-    throw std::runtime_error("Failed to open file A.");
-  }
-
-  fout << "2 3 3\n";
-  fout << "1 2 3\n";
-  fout << "2 2 2\n";
-  fout << "2 3 1\n";
-  fout.close();
-}
-
-
-// Helper function to create a small test matrix file
-void createTestMatrixFileB(const std::string& filename) {
-    std::ofstream fout(filename);
-    if (!fout.is_open()) {
-        throw std::runtime_error("Failed to open file B.");
-    }
-
-    // M=3, N=7, NNZ=12
-    fout << "3 7 12\n";
-
-    // 1-based (row, col, val) lines
-    fout << "1 2 4\n";
-    fout << "2 2 1\n";
-    fout << "1 3 3\n";
-    fout << "2 3 1\n";
-    fout << "3 3 1\n";
-    fout << "2 4 1\n";
-    fout << "3 4 2\n";
-    fout << "2 5 2\n";
-    fout << "3 5 2\n";
-    fout << "2 6 2\n";
-    fout << "3 6 1\n";
-    fout << "3 7 1\n";
-
-    fout.close();
-}
 
 TEST_CASE("CoordListMatrix constructor and getCoords", "[CoordListMatrix]") {
   const std::string filenameA = "Trec4.mtx";
-  createTestMatrixFileA(filenameA);
 
   CoordListMatrix matrix(filenameA);
 
@@ -160,8 +119,6 @@ TEST_CASE("CoordListMatrix matmul Trec4(2×3) vs Trec5(3×7)", "[CoordListMatrix
 
     const std::string fileT4 = "Trec4.mtx";
     const std::string fileT5 = "Trec5.mtx";
-    createTestMatrixFileA(fileT4);
-    createTestMatrixFileB(fileT5);
 
     CoordListMatrix A(fileT4); // shape = 2×3
     CoordListMatrix B(fileT5); // shape = 3×7
@@ -197,3 +154,56 @@ TEST_CASE("CoordListMatrix matmul Trec4(2×3) vs Trec5(3×7)", "[CoordListMatrix
         CHECK(actualCoords[i].col == expectedCoords[i].col);
     }
 }
+
+
+/**
+ * @brief Test boolean optimized matmul of Trec4 (2×3) and Trec5 (3×7).
+ *        Result should be 2×7.
+ */
+TEST_CASE("CoordListMatrix optimized matmul Trec4(2×3) vs Trec5(3×7)", "[CoordListMatrix]") {
+
+    const std::string fileT4 = "Trec4.mtx";
+    const std::string fileT5 = "Trec5.mtx";
+
+    CoordListMatrix A(fileT4); // shape = 2×3
+    CoordListMatrix B(fileT5); // shape = 3×7
+
+
+    auto R1Tuples = A.getHashedCoords();
+    auto R2Tuples = B.getHashedCoords();
+
+    // Estimate join-project size
+    double estimate = estimateProductSize(R1Tuples, R2Tuples, 0.1);
+
+    // Multiply A×B => shape 2×7
+    CoordListMatrix C = A.optimizedMatmul(B, estimate);
+    auto [rowsC, colsC] = C.shape();
+
+    REQUIRE(rowsC == 2);
+    REQUIRE(colsC == 7);
+
+    std::vector<Coord> expectedCoords = {
+        // row=0
+        {0,1},{0,2},{0,3},{0,4},{0,5},
+        // row=1
+        {1,1},{1,2},{1,3},{1,4},{1,5},{1,6}
+    };
+
+    std::vector<Coord> actualCoords = C.getCoords();
+
+    // Sort them to match expectedCoords format
+    auto coordSorter = [](const Coord &a, const Coord &b) {
+        if (a.row != b.row) return a.row < b.row;
+        return a.col < b.col;
+    };
+    std::sort(actualCoords.begin(), actualCoords.end(), coordSorter);
+    std::sort(expectedCoords.begin(), expectedCoords.end(), coordSorter);
+
+    REQUIRE(actualCoords.size() == expectedCoords.size());
+
+    for (size_t i = 0; i < expectedCoords.size(); i++) {
+        CHECK(actualCoords[i].row == expectedCoords[i].row);
+        CHECK(actualCoords[i].col == expectedCoords[i].col);
+    }
+}
+
