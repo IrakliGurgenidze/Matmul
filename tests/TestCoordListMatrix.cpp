@@ -197,3 +197,76 @@ TEST_CASE("CoordListMatrix matmul Trec4(2×3) vs Trec5(3×7)", "[CoordListMatrix
         CHECK(actualCoords[i].col == expectedCoords[i].col);
     }
 }
+
+TEST_CASE("CoordListMatrix batchedNaiveMatmul works correctly", "[CoordListMatrix][batch]") {
+    SECTION("Correctness Check") {
+        double sparsity = 0.01;
+        int M = 50;
+        int N = 60;
+        int K = 40;
+        int batchSize = 5;
+
+        // Generate a single left matrix A
+        const auto coordsA = generateSparseMatrix(sparsity, M, K, 42);
+        CoordListMatrix A(coordsA, M, K);
+
+        // Generate a batch of right matrices
+        std::vector<CoordListMatrix> rights;
+        for (int i = 0; i < batchSize; ++i) {
+            auto coordsB = generateSparseMatrix(sparsity, K, N, 100 + i);
+            rights.emplace_back(coordsB, K, N);
+        }
+
+        // Run batched matmul
+        auto results = A.batchedNaiveMatmul(rights);
+
+        REQUIRE(results.size() == rights.size());
+
+        for (size_t i = 0; i < results.size(); ++i) {
+            // Shape check
+            REQUIRE(results[i].shape() == std::pair<int, int>{M, N});
+
+            // Consistency check with naiveMatmul
+            CoordListMatrix expected = A.naiveMatmul(rights[i]);
+            auto expectedCoords = expected.getCoords();
+            auto actualCoords = results[i].getCoords();
+
+            auto coordSorter = [](const Coord &a, const Coord &b) {
+                return (a.row != b.row) ? (a.row < b.row) : (a.col < b.col);
+            };
+
+            std::sort(expectedCoords.begin(), expectedCoords.end(), coordSorter);
+            std::sort(actualCoords.begin(), actualCoords.end(), coordSorter);
+
+            REQUIRE(expectedCoords.size() == actualCoords.size());
+            for (size_t j = 0; j < expectedCoords.size(); ++j) {
+                CHECK(expectedCoords[j].row == actualCoords[j].row);
+                CHECK(expectedCoords[j].col == actualCoords[j].col);
+            }
+        }
+    }
+
+    SECTION("Error throw check") {
+        double sparsity = 0.01;
+        int M = 50;
+        int K = 40;
+        int badK = K + 1; // deliberately wrong
+        int N = 60;
+
+        // Valid left-hand matrix A
+        auto coordsA = generateSparseMatrix(sparsity, M, K, 1);
+        CoordListMatrix A(coordsA, M, K);
+
+        // Construct valid B
+        auto coordsB1 = generateSparseMatrix(sparsity, K, N, 2);
+        CoordListMatrix B1(coordsB1, K, N);
+
+        // Construct mismatched B (wrong # rows)
+        auto coordsB2 = generateSparseMatrix(sparsity, badK, N, 3);
+        CoordListMatrix B2(coordsB2, badK, N);
+
+        std::vector<CoordListMatrix> rights = {B1, B2};
+
+        REQUIRE_THROWS_AS(A.batchedNaiveMatmul(rights), std::invalid_argument);
+    }
+}

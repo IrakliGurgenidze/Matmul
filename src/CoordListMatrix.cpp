@@ -92,8 +92,7 @@ std::vector<Coord>& CoordListMatrix::getCoords() {
 
 const std::vector<HashCoord>& CoordListMatrix::getHashedCoords() const { return hashedCoords_; }
 
-
-CoordListMatrix CoordListMatrix::naiveMatmul(const CoordListMatrix &right) {
+CoordListMatrix CoordListMatrix::naiveMatmul(const CoordListMatrix &right) const {
     // Check for matrix dimension mismatch
     auto [rowsA, colsA] = this->shape();
     auto [rowsB, colsB] = right.shape();
@@ -142,7 +141,7 @@ CoordListMatrix CoordListMatrix::naiveMatmul(const CoordListMatrix &right) {
     return outMatrix;
 }
 
-CoordListMatrix CoordListMatrix::optimizedMatmul(const CoordListMatrix &right, double estimate) {
+CoordListMatrix CoordListMatrix::optimizedMatmul(const CoordListMatrix &right, double estimation) {
     // if (this->N != right.M) {
     //     throw std::invalid_argument("Matrix dimensions do not align.");
     // }
@@ -157,7 +156,7 @@ CoordListMatrix CoordListMatrix::optimizedMatmul(const CoordListMatrix &right, d
 
     // Preallocate the result coordinate vector using the externally provided estimate
     std::vector<Coord> resultCoords;
-    resultCoords.reserve(static_cast<size_t>(estimate));
+    resultCoords.reserve(static_cast<size_t>(estimation));
 
     // Build row-based adjacency
     std::vector<std::vector<int>> rowA(rowsA);
@@ -198,60 +197,30 @@ CoordListMatrix CoordListMatrix::optimizedMatmul(const CoordListMatrix &right, d
 }
 
 std::vector<CoordListMatrix> CoordListMatrix::batchedNaiveMatmul(const std::vector<CoordListMatrix> &rights) const {
+    auto [rowsA, colsA] = this->shape();
+
+    // Validate all matrix dimensions first
+    for (const auto &right : rights) {
+        if (colsA != right.shape().first) {
+            throw std::invalid_argument("Dimension mismatch in naive batch multiplication.");
+        }
+    }
 
     std::vector<CoordListMatrix> results;
     results.reserve(rights.size());
 
-    auto [rowsA, colsA] = this->shape();
-    std::vector<std::vector<int>> leftGroups(rowsA);
-    for (const auto &coord : this->coords) {
-        leftGroups[coord.row].push_back(coord.col);
-    }
-
+    // Now safe to run all multiplications
     for (const auto &right : rights) {
-        auto [rowsB, colsB] = right.shape();
-        if (colsA != rowsB) {
-            throw std::invalid_argument("Dimension mismatch in naive batch multiplication.");
-        }
-
-        std::vector<std::vector<int>> rightGroups(rowsB);
-        for (const auto &coord : right.coords) {
-            rightGroups[coord.row].push_back(coord.col);
-        }
-
-        // For each left row i, iterate over its list of join keys
-        // use that join key to lookup rightGroups[joinKey] – each lookup is done independently
-        std::vector<std::unordered_set<int>> resSets(rowsA);
-        for (int i = 0; i < rowsA; i++) {
-            for (int joinKey : leftGroups[i]) {
-                if (joinKey >= 0 && joinKey < rowsB) {
-                    for (int rightCol : rightGroups[joinKey]) {
-                        resSets[i].insert(rightCol);
-                    }
-                }
-            }
-        }
-
-        std::vector<Coord> resultCoords;
-        for (int i = 0; i < rowsA; i++) {
-            for (int col : resSets[i]) {
-                resultCoords.push_back({i, col});
-            }
-        }
-
-        CoordListMatrix outMatrix = *this;
-        outMatrix.coords = std::move(resultCoords);
-        outMatrix.M = rowsA;
-        outMatrix.N = colsB;
-        results.push_back(std::move(outMatrix));
+        results.push_back(this->naiveMatmul(right));
     }
 
     return results;
-
 }
 
 std::vector<CoordListMatrix> CoordListMatrix::batchOptimizedMatmul(const std::vector<CoordListMatrix> &rights,
     double epsilon) const {
+
+    // TODO verify matrix dims line up
 
     std::vector<CoordListMatrix> results;
     results.reserve(rights.size());
