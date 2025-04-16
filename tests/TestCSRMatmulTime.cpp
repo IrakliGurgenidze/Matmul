@@ -211,7 +211,6 @@ TEST_CASE("CSR Scaling Sweep (single op, naive)", "[benchmark]") {
 }
 
 TEST_CASE("CSR Scaling Sweep (single op, optimized)", "[benchmark]") {
-  // double sparsity = 0.001;
   double sparsity = 0.0005;
 
   int start_N = 10000;

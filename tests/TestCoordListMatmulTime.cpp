@@ -11,7 +11,7 @@
 #include <MatrixUtils.h>
 
 void benchmarkCoordListMatmulNaive(int M, int K, int N, double sparsity,
-                            const std::string &label, const std::string &csvFilePath ) {
+                            const std::string &label) {
   int seedA = 1;
   int seedB = 2;
 
@@ -29,13 +29,15 @@ void benchmarkCoordListMatmulNaive(int M, int K, int N, double sparsity,
 
   REQUIRE(elapsed > 0);
 
+    const std::filesystem::path outDir{"/Users/griffinravo/CLionProjects/Matmul/output"};
+
     // Ensure output directory exists
-    std::filesystem::create_directories("output");
+    std::filesystem::create_directories(outDir);
 
     // Open output file in append mode
-    std::ofstream fout(csvFilePath, std::ios::app);
+    std::ofstream fout(outDir / "CL_single_naive.csv", std::ios::app);
     if (!fout.is_open()) {
-      throw std::runtime_error("Could not open CSV file: " + csvFilePath);
+      throw std::runtime_error("Could not open CSV file");
     }
 
     fout << M << "," << K << "," << N << "," << elapsed << "\n";
@@ -46,7 +48,7 @@ void benchmarkCoordListMatmulNaive(int M, int K, int N, double sparsity,
 }
 
 void benchmarkCoordListMatmulOptimized(int M, int K, int N, double sparsity,
-                                const std::string &label, const std::string &csvFilePath ) {
+                                const std::string &label) {
   // std::random_device rd;
   int seedA = 1;
   int seedB = 2;
@@ -68,25 +70,25 @@ void benchmarkCoordListMatmulOptimized(int M, int K, int N, double sparsity,
 
   REQUIRE(elapsed > 0);
 
+  const std::filesystem::path outDir{"/Users/griffinravo/CLionProjects/Matmul/output"};
 
-    // Ensure output directory exists
-    std::filesystem::create_directories("output");
+  // Ensure output directory exists
+  std::filesystem::create_directories(outDir);
 
-    // Open output file in append mode
-    std::ofstream fout(csvFilePath, std::ios::app);
-    if (!fout.is_open()) {
-      throw std::runtime_error("Could not open CSV file: " + csvFilePath);
-    }
+  // Open output file in append mode
+  std::ofstream fout(outDir / "CL_single_optimized.csv", std::ios::app);
+  if (!fout.is_open()) {
+    throw std::runtime_error("Could not open CSV file");
+  }
 
-    fout << M << "," << K << "," << N << "," << elapsed << "\n";
-    fout.close();
+  fout << M << "," << K << "," << N << "," << elapsed << "\n";
+  fout.close();
 
   REQUIRE(result.shape().first == M);
   REQUIRE(result.shape().second == N);
 }
 
-void benchmarkCoordlistBatchedMatmulNaive(int N, double sparsity, int numMats, const std::string &label,
-  const std::string &csvFilePath ) {
+void benchmarkCoordlistBatchedMatmulNaive(int N, double sparsity, int numMats, const std::string &label) {
 
   // Generate first matrix
   int seedA = 1;
@@ -112,13 +114,15 @@ void benchmarkCoordlistBatchedMatmulNaive(int N, double sparsity, int numMats, c
     REQUIRE(result.shape() == std::pair<int, int>{N, N});
   }
 
-  // Print results
-    std::filesystem::create_directories("output");
+    const std::filesystem::path outDir{"/Users/griffinravo/CLionProjects/Matmul/output"};
+
+    // Ensure output directory exists
+    std::filesystem::create_directories(outDir);
 
     // Open output file in append mode
-    std::ofstream fout(csvFilePath, std::ios::app);
+    std::ofstream fout(outDir / "CL_batched_naive.csv", std::ios::app);
     if (!fout.is_open()) {
-      throw std::runtime_error("Could not open CSV file: " + csvFilePath);
+      throw std::runtime_error("Could not open CSV file");
     }
 
     fout << N << "," << numMats << "," << elapsed << "\n";
@@ -126,7 +130,7 @@ void benchmarkCoordlistBatchedMatmulNaive(int N, double sparsity, int numMats, c
 
 }
 
-void benchmarkCoordlistBatchedMatmulOptimized(int N, double sparsity, int numMats, const std::string &label, const std::string &csvFilePath ) {
+void benchmarkCoordlistBatchedMatmulOptimized(int N, double sparsity, int numMats, const std::string &label) {
 
   // Generate first matrix
   int seedA = 1;
@@ -152,13 +156,15 @@ void benchmarkCoordlistBatchedMatmulOptimized(int N, double sparsity, int numMat
     REQUIRE(result.shape() == std::pair<int, int>{N, N});
   }
 
-  // Print results
-    std::filesystem::create_directories("output");
+    const std::filesystem::path outDir{"/Users/griffinravo/CLionProjects/Matmul/output"};
+
+    // Ensure output directory exists
+    std::filesystem::create_directories(outDir);
 
     // Open output file in append mode
-    std::ofstream fout(csvFilePath, std::ios::app);
+    std::ofstream fout(outDir / "CL_batched_optimized.csv", std::ios::app);
     if (!fout.is_open()) {
-      throw std::runtime_error("Could not open CSV file: " + csvFilePath);
+      throw std::runtime_error("Could not open CSV file");
     }
 
     fout << N << "," << numMats << "," << elapsed << "\n";
@@ -185,56 +191,56 @@ void benchmarkCoordlistBatchedMatmulOptimized(int N, double sparsity, int numMat
 
 TEST_CASE("CoordList Scaling Sweep (single op, naive)", "[benchmark]") {
   double sparsity = 0.00005;
-  int start_N = 10000;
-  int end_N = 250000;
-  int step = 10000;
+  int start_N = 20000;
+  int end_N = 400000;
+  int step = 20000;
 
   for (int N = start_N; N <= end_N; N += step) {
     int M = N;
     int K = N; // or N, if you want square multiplications
 
     std::string label = "[naive-sweep N=" + std::to_string(N) + "]";
-    benchmarkCoordListMatmulNaive(M, K, N, sparsity, label, "output/CL_single_naive.csv");
+    benchmarkCoordListMatmulNaive(M, K, N, sparsity, label);
   }
 }
 
 TEST_CASE("CoordList Scaling Sweep (single optimized)", "[benchmark]") {
   double sparsity = 0.00005;
-  int start_N = 10000;
-  int end_N = 50000;
-  int step = 10000;
+  int start_N = 20000;
+  int end_N = 400000;
+  int step = 20000;
 
   for (int N = start_N; N <= end_N; N += step) {
     int M = N;
     int K = N; // or N, if you want square multiplications
 
     std::string label = "[naive-sweep N=" + std::to_string(N) + "]";
-    benchmarkCoordListMatmulOptimized(M, K, N, sparsity, label, "output/CL_single_optimized.txt");
+    benchmarkCoordListMatmulOptimized(M, K, N, sparsity, label);
   }
 }
 
 TEST_CASE("CoordList Scaling Sweep (batched naive)", "[benchmark][batch]") {
   double sparsity = 0.00005;
-  int start_N = 10000;
-  int end_N = 100000;
-  int step = 10000;
-  int numMats = 20; // Number of right-hand matrices in each batch
+  int start_N = 20000;
+  int end_N = 200000;
+  int step = 20000;
+  int numMats = 50; // Number of right-hand matrices in each batch
 
   for (int N = start_N; N <= end_N; N += step) {
     std::string label = "[batched-naive-sweep N=" + std::to_string(N) + "]";
-    benchmarkCoordlistBatchedMatmulNaive(N, sparsity, numMats, label, "output/CL_batch_naive.csv");
+    benchmarkCoordlistBatchedMatmulNaive(N, sparsity, numMats, label);
   }
 }
 
 TEST_CASE("CoordList Scaling Sweep (batched optimized)", "[benchmark][batch]") {
   double sparsity = 0.00005;
-  int start_N = 10000;
-  int end_N = 100000;
-  int step = 10000;
-  int numMats = 20; // Number of right-hand matrices in each batch
+  int start_N = 20000;
+  int end_N = 200000;
+  int step = 20000;
+  int numMats = 50; // Number of right-hand matrices in each batch
 
   for (int N = start_N; N <= end_N; N += step) {
     std::string label = "[batched-optimized-sweep N=" + std::to_string(N) + "]";
-    benchmarkCoordlistBatchedMatmulOptimized(N, sparsity, numMats, label, "CL_batch_optimized.csv");
+    benchmarkCoordlistBatchedMatmulOptimized(N, sparsity, numMats, label);
   }
 }

@@ -118,31 +118,18 @@ double estimateProductSize(const std::vector<HashCoord> &R1in,
     i = j;
   }
 
-  /*
-  // Finding initial p value for O(n)
-  // int maxProduct = 0;
-  // for (size_t i = 0; i < Ai.size(); i++) {
-  //     int product = static_cast<int>(Ai[i].second.size() *
-  Ci[i].second.size());
-  //     if (product > maxProduct) {
-  //         maxProduct = product;
-  //     }
-  // }
-  // p_val = std::min(1.0 / K_VAL, static_cast<double>(K_VAL) / maxProduct);
-  */
-
   std::vector<HashCoord> S, F;
   S.reserve(K_VAL);
   F.reserve(K_VAL);
 
-  // To check dupes, determine the max vals for a and c
+  // To check dupes
   int maxA = 0, maxC = 0;
   for (auto &t : R1)
     maxA = std::max(maxA, t.row);
   for (auto &t : R2)
     maxC = std::max(maxC, t.col);
   std::unordered_set<uint64_t> seen;
-  seen.reserve(static_cast<std::size_t>(R1.size() + R2.size()));
+  seen.reserve(R1.size() + R2.size());
 
   size_t i = 0, j = 0;
   while (i < Ai.size() && j < Ci.size()) {

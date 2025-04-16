@@ -43,10 +43,11 @@ CoordListMatrix::CoordListMatrix(const std::string &filename) : M(0), N(0) {
       std::stringstream ssl(line);
       int r, c;
       double val;
-      ssl >> r >> c >> val;
+      ssl >> r >> c;
       if (ssl.fail()) {
         throw std::runtime_error("Couldn't parse a nonzero line: " + line);
       }
+
 
       // 1-based => 0-based
       r--;

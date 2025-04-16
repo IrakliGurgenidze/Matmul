@@ -8,15 +8,17 @@
 
 #include <chrono>
 #include <iomanip>
+#include <filesystem>
+#include <fstream>
 
-void benchmark_estimator(int M, int K, int N, double sparsity,
+void benchmark_estimator(int M, int K, int N, double curr_sparsity,
                          const std::string &label, bool csv = false) {
   // std::random_device rd;
   int seedA = 1;
   int seedB = 2;
 
-  const auto coordsA = generateSparseMatrix(sparsity, M, K, seedA);
-  const auto coordsB = generateSparseMatrix(sparsity, K, N, seedB);
+  const auto coordsA = generateSparseMatrix(curr_sparsity, M, K, seedA);
+  const auto coordsB = generateSparseMatrix(curr_sparsity, K, N, seedB);
 
   CoordListMatrix A(coordsA, M, K);
   CoordListMatrix B(coordsB, K, N);
@@ -26,9 +28,12 @@ void benchmark_estimator(int M, int K, int N, double sparsity,
       estimateProductSize(A.getHashedCoords(), B.getHashedCoords());
   const auto end = std::chrono::steady_clock::now();
 
+  const auto startGT = std::chrono::steady_clock::now();
   int trueNumberNonzero = groundTruthCalc(A.getCoords(), B.getCoords());
+  const auto endGT = std::chrono::steady_clock::now();
 
   const auto elapsed = std::chrono::duration<double>(end - start).count();
+  const auto elapsedGT = std::chrono::duration<double>(endGT - startGT).count();
   REQUIRE(elapsed > 0);
 
   if (!csv) {
@@ -38,8 +43,18 @@ void benchmark_estimator(int M, int K, int N, double sparsity,
               << "  True NNZ=" << std::setw(15) << trueNumberNonzero
               << "  time=" << std::setw(10) << elapsed << " s" << std::endl;
   } else {
-    std::cout << estimation << "," << trueNumberNonzero << "," << elapsed
-              << std::endl;
+      const std::filesystem::path outDir{"/Users/griffinravo/CLionProjects/Matmul/output/sparsityest"};
+
+      std::filesystem::create_directories(outDir);
+
+      // Open output file in append mode
+      std::ofstream fout(outDir / "SparsityEstvGT.csv", std::ios::app);
+      if (!fout.is_open()) {
+        throw std::runtime_error("Could not open CSV file");
+      }
+
+      fout << elapsed << "," << elapsedGT << "," << curr_sparsity << "\n";
+      fout.close();
   }
 }
 
@@ -114,7 +129,7 @@ TEST_CASE("Estimator returns accurate value when sketch fills",
   }
 }
 
-TEST_CASE("Estimator run time", "[Estimator][Benchmark]") {
+TEST_CASE("Estimator run time", "[Estimator_SZ][SizeSweep]") {
   double sparsity = 0.00005;
   int start_N = 10000;
   int end_N = 250000;
@@ -126,5 +141,17 @@ TEST_CASE("Estimator run time", "[Estimator][Benchmark]") {
 
     std::string label = "[estimator-sweep N=" + std::to_string(N) + "]";
     benchmark_estimator(M, K, N, sparsity, label, true);
+  }
+}
+
+TEST_CASE("Estimator SP", "[Estimator_SP][Sparsity_Sweep]") {
+  double start_sp = 0.00000000005;
+  int N = 1000;
+
+  for (double i = start_sp; i < 0.0000005; i *= 10) {
+    int M = N;
+    int K = N; // or N, if you want square multiplications
+    std::string label = "[estimator-sweep N=" + std::to_string(N) + " sp=" + std::to_string(i) + "]";
+    benchmark_estimator(M, K, N, i, label, true);
   }
 }

@@ -29,6 +29,7 @@ add_executable(tests
         ../src/CSRMatrix.cpp
         TestEstimator.cpp
         ../src/Estimator.cpp
+        TestRealWorld.cpp
         # test_cardinality.cpp  # Add your test source files here
 )
 
