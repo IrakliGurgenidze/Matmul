@@ -3,15 +3,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <chrono>
 #include <cstdint>
-#include <iomanip>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 
 #include <Estimator.h>
 #include <MatrixUtils.h>
 
 void benchmarkCoordListMatmulNaive(int M, int K, int N, double sparsity,
-                            const std::string &label) {
+                                   const std::string &label) {
   int seedA = 1;
   int seedB = 2;
 
@@ -29,26 +29,27 @@ void benchmarkCoordListMatmulNaive(int M, int K, int N, double sparsity,
 
   REQUIRE(elapsed > 0);
 
-    const std::filesystem::path outDir{"/Users/griffinravo/CLionProjects/Matmul/output"};
+  const std::filesystem::path outDir{
+      "/Users/griffinravo/CLionProjects/Matmul/output"};
 
-    // Ensure output directory exists
-    std::filesystem::create_directories(outDir);
+  // Ensure output directory exists
+  std::filesystem::create_directories(outDir);
 
-    // Open output file in append mode
-    std::ofstream fout(outDir / "CL_single_naive.csv", std::ios::app);
-    if (!fout.is_open()) {
-      throw std::runtime_error("Could not open CSV file");
-    }
+  // Open output file in append mode
+  std::ofstream fout(outDir / "CL_single_naive.csv", std::ios::app);
+  if (!fout.is_open()) {
+    throw std::runtime_error("Could not open CSV file");
+  }
 
-    fout << M << "," << K << "," << N << "," << elapsed << "\n";
-    fout.close();
+  fout << M << "," << K << "," << N << "," << elapsed << "\n";
+  fout.close();
 
   REQUIRE(result.shape().first == M);
   REQUIRE(result.shape().second == N);
 }
 
 void benchmarkCoordListMatmulOptimized(int M, int K, int N, double sparsity,
-                                const std::string &label) {
+                                       const std::string &label) {
   // std::random_device rd;
   int seedA = 1;
   int seedB = 2;
@@ -70,7 +71,8 @@ void benchmarkCoordListMatmulOptimized(int M, int K, int N, double sparsity,
 
   REQUIRE(elapsed > 0);
 
-  const std::filesystem::path outDir{"/Users/griffinravo/CLionProjects/Matmul/output"};
+  const std::filesystem::path outDir{
+      "/Users/griffinravo/CLionProjects/Matmul/output"};
 
   // Ensure output directory exists
   std::filesystem::create_directories(outDir);
@@ -88,7 +90,8 @@ void benchmarkCoordListMatmulOptimized(int M, int K, int N, double sparsity,
   REQUIRE(result.shape().second == N);
 }
 
-void benchmarkCoordlistBatchedMatmulNaive(int N, double sparsity, int numMats, const std::string &label) {
+void benchmarkCoordlistBatchedMatmulNaive(int N, double sparsity, int numMats,
+                                          const std::string &label) {
 
   // Generate first matrix
   int seedA = 1;
@@ -110,27 +113,29 @@ void benchmarkCoordlistBatchedMatmulNaive(int N, double sparsity, int numMats, c
   const double elapsed = std::chrono::duration<double>(end - start).count();
 
   // Verify results
-  for (const auto& result : results) {
+  for (const auto &result : results) {
     REQUIRE(result.shape() == std::pair<int, int>{N, N});
   }
 
-    const std::filesystem::path outDir{"/Users/griffinravo/CLionProjects/Matmul/output"};
+  const std::filesystem::path outDir{
+      "/Users/griffinravo/CLionProjects/Matmul/output"};
 
-    // Ensure output directory exists
-    std::filesystem::create_directories(outDir);
+  // Ensure output directory exists
+  std::filesystem::create_directories(outDir);
 
-    // Open output file in append mode
-    std::ofstream fout(outDir / "CL_batched_naive.csv", std::ios::app);
-    if (!fout.is_open()) {
-      throw std::runtime_error("Could not open CSV file");
-    }
+  // Open output file in append mode
+  std::ofstream fout(outDir / "CL_batched_naive.csv", std::ios::app);
+  if (!fout.is_open()) {
+    throw std::runtime_error("Could not open CSV file");
+  }
 
-    fout << N << "," << numMats << "," << elapsed << "\n";
-    fout.close();
-
+  fout << N << "," << numMats << "," << elapsed << "\n";
+  fout.close();
 }
 
-void benchmarkCoordlistBatchedMatmulOptimized(int N, double sparsity, int numMats, const std::string &label) {
+void benchmarkCoordlistBatchedMatmulOptimized(int N, double sparsity,
+                                              int numMats,
+                                              const std::string &label) {
 
   // Generate first matrix
   int seedA = 1;
@@ -152,30 +157,31 @@ void benchmarkCoordlistBatchedMatmulOptimized(int N, double sparsity, int numMat
   const double elapsed = std::chrono::duration<double>(end - start).count();
 
   // Verify results
-  for (const auto& result : results) {
+  for (const auto &result : results) {
     REQUIRE(result.shape() == std::pair<int, int>{N, N});
   }
 
-    const std::filesystem::path outDir{"/Users/griffinravo/CLionProjects/Matmul/output"};
+  const std::filesystem::path outDir{
+      "/Users/griffinravo/CLionProjects/Matmul/output"};
 
-    // Ensure output directory exists
-    std::filesystem::create_directories(outDir);
+  // Ensure output directory exists
+  std::filesystem::create_directories(outDir);
 
-    // Open output file in append mode
-    std::ofstream fout(outDir / "CL_batched_optimized.csv", std::ios::app);
-    if (!fout.is_open()) {
-      throw std::runtime_error("Could not open CSV file");
-    }
+  // Open output file in append mode
+  std::ofstream fout(outDir / "CL_batched_optimized.csv", std::ios::app);
+  if (!fout.is_open()) {
+    throw std::runtime_error("Could not open CSV file");
+  }
 
-    fout << N << "," << numMats << "," << elapsed << "\n";
-    fout.close();
-
+  fout << N << "," << numMats << "," << elapsed << "\n";
+  fout.close();
 }
 
 // TEST_CASE("CoordList Performance Benchmark, (single op, naive)",
 //           "[CoordListMatrix]") {
 //   SECTION("Single matmul operation, small naive") {
-//     benchmarkCoordListMatmulNaive(1000, 800, 1000, 0.005, "[naive matmul, small]");
+//     benchmarkCoordListMatmulNaive(1000, 800, 1000, 0.005, "[naive matmul,
+//     small]");
 //   }
 //
 //   SECTION("Single matmul operation, medium naive") {

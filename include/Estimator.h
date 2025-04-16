@@ -17,15 +17,26 @@
 static void combine(std::vector<ACpair> &S, std::vector<ACpair> &F);
 
 /**
- * @brief
+ * @brief Performs a sweep-based merge step to update the top-k minimum hash
+ * (a,c) pairs.
  *
- * @param A
- * @param C
- * @param p
- * @param k
- * @param S
- * @param F
- * @param addedPairs
+ * This function scans the Cartesian product A × C for joinable tuples (where b
+ * matches), computes their hashed (a,c) value using hAC = h1(a) - h2(c), and
+ * updates:
+ *   - S: the current set of the k smallest hash (a,c) pairs
+ *   - F: the buffer of new candidate pairs that may enter S
+ *
+ * It avoids duplicate (a,c) pairs using the addedPairs set.
+ * The threshold p is updated to the k-th smallest hash seen so far.
+ *
+ * @param A Vector of tuples from relation R1 (a, b, h1(a)).
+ * @param C Vector of tuples from relation R2 (b, c, h2(c)).
+ * @param p Hash threshold used to determine top-k inclusion (updated in-place).
+ * @param k Number of minimum hash pairs to retain in S.
+ * @param S Vector containing the smallest k ACpair entries (by hashAC)
+ * discovered so far.
+ * @param F Buffer of unprocessed ACpairs to be merged into S.
+ * @param addedPairs Set used to avoid re-inserting duplicate (a, c) pairs.
  */
 static void
 pointerSweep(const std::vector<R1Tuple> &A, const std::vector<R2Tuple> &C,

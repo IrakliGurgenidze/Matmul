@@ -69,14 +69,14 @@ public:
   CSRMatrix optimizedMatmul(const CSRMatrix &right, double estimate);
 
   /**
-   * @brief Performs naive (with estimation) sparse matrix multiplication
+   * @brief Performs naive batched sparse matrix multiplication
    * with this matrix on the left.
    *
-   * Multiplies the current matrix (as left operand) with the given matrix
-   * `right`, returning the coordinate list of the result.
+   * Multiplies the current matrix (as left operand) with each matrix in
+   * 'rights', returning a list of results.
    *
-   * @param rights The right-hand matrix in the multiplication (this × right)
-   * @return CSRMatrix representing the product
+   * @param rights The right-hand matrices in the multiplication (this × right)
+   * @return Vector of CSRMatrix representing the product
    *
    * @throws std::invalid_argument on matrix dimension mismatch.
    */
@@ -84,14 +84,15 @@ public:
   batchNaiveMatmul(const std::vector<CSRMatrix> &rights) const;
 
   /**
-   * @brief Performs optimized (with estimation) sparse matrix multiplication
+   * @brief Performs optimized batched sparse matrix multiplication
    * with this matrix on the left.
    *
-   * Multiplies the current matrix (as left operand) with the given matrix
-   * `right`, returning the coordinate list of the result.
+   * Multiplies the current matrix (as left operand) with each matrix in
+   * 'rights', returning a list of results.
    *
    * @param rights The right-hand matrix in the multiplication (this × right)
-   * @return CSRMatrix representing the product
+   * @param epsilon The estimated product size of resulting matrix
+   * @return Vector of CSRMatrix representing the product
    *
    * @throws std::invalid_argument on matrix dimension mismatch.
    */

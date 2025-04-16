@@ -7,6 +7,9 @@
 
 inline constexpr uint64_t PRIME = 4294967311ULL; // keep PRIME here
 
+/**
+ * Initiates a single global hash context for all operations.
+ */
 class HashContext {
 public:
   uint64_t seed1{0}, seed2{0};

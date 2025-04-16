@@ -69,14 +69,14 @@ public:
                                   double estimation);
 
   /**
-   * @brief Performs optimized (with estimation) sparse matrix multiplication
+   * @brief Performs naive batched sparse matrix multiplication
    * with this matrix on the left.
    *
-   * Multiplies the current matrix (as left operand) with the given matrix
-   * `right`, returning the coordinate list of the result.
+   * Multiplies the current matrix (as left operand) with each matrix in
+   * 'rights', returning a list of results.
    *
-   * @param rights The right-hand matrix in the multiplication (this × right)
-   * @return CoordListMatrix representing the product
+   * @param rights The right-hand matrices in the multiplication (this × right)
+   * @return Vector of CoordListMatrix representing the product
    *
    * @throws std::invalid_argument on matrix dimension mismatch.
    */
@@ -84,15 +84,15 @@ public:
   batchNaiveMatmul(const std::vector<CoordListMatrix> &rights) const;
 
   /**
-   * @brief Performs optimized (with estimation) sparse matrix multiplication
+   * @brief Performs optimized batched sparse matrix multiplication
    * with this matrix on the left.
    *
-   * Multiplies the current matrix (as left operand) with the given matrix
-   * `right`, returning the coordinate list of the result.
+   * Multiplies the current matrix (as left operand) with each matrix in
+   * 'rights', returning a list of results.
    *
    * @param rights The right-hand matrix in the multiplication (this × right)
    * @param epsilon The estimated product size of resulting matrix
-   * @return CoordListMatrix representing the product
+   * @return Vector of CoordListMatrix representing the product
    *
    * @throws std::invalid_argument on matrix dimension mismatch.
    */
@@ -103,6 +103,7 @@ public:
   /**
    * @brief Returns a vector of non-zero (row, col) coordinates with their
    * respective hash values.
+   *
    * @return Reference to the internal vector of HashCoord entries.
    */
   const std::vector<HashCoord> &getHashedCoords() const;

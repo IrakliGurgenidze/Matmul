@@ -48,7 +48,6 @@ CoordListMatrix::CoordListMatrix(const std::string &filename) : M(0), N(0) {
         throw std::runtime_error("Couldn't parse a nonzero line: " + line);
       }
 
-
       // 1-based => 0-based
       r--;
       c--;

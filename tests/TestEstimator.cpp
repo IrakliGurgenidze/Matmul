@@ -7,9 +7,9 @@
 #include <cmath>
 
 #include <chrono>
-#include <iomanip>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 
 void benchmark_estimator(int M, int K, int N, double curr_sparsity,
                          const std::string &label, bool csv = false) {
@@ -43,18 +43,19 @@ void benchmark_estimator(int M, int K, int N, double curr_sparsity,
               << "  True NNZ=" << std::setw(15) << trueNumberNonzero
               << "  time=" << std::setw(10) << elapsed << " s" << std::endl;
   } else {
-      const std::filesystem::path outDir{"/Users/griffinravo/CLionProjects/Matmul/output/sparsityest"};
+    const std::filesystem::path outDir{
+        "/Users/griffinravo/CLionProjects/Matmul/output/sparsityest"};
 
-      std::filesystem::create_directories(outDir);
+    std::filesystem::create_directories(outDir);
 
-      // Open output file in append mode
-      std::ofstream fout(outDir / "SparsityEstvGT.csv", std::ios::app);
-      if (!fout.is_open()) {
-        throw std::runtime_error("Could not open CSV file");
-      }
+    // Open output file in append mode
+    std::ofstream fout(outDir / "SparsityEstvGT.csv", std::ios::app);
+    if (!fout.is_open()) {
+      throw std::runtime_error("Could not open CSV file");
+    }
 
-      fout << elapsed << "," << elapsedGT << "," << curr_sparsity << "\n";
-      fout.close();
+    fout << elapsed << "," << elapsedGT << "," << curr_sparsity << "\n";
+    fout.close();
   }
 }
 
@@ -151,7 +152,8 @@ TEST_CASE("Estimator SP", "[Estimator_SP][Sparsity_Sweep]") {
   for (double i = start_sp; i < 0.0000005; i *= 10) {
     int M = N;
     int K = N; // or N, if you want square multiplications
-    std::string label = "[estimator-sweep N=" + std::to_string(N) + " sp=" + std::to_string(i) + "]";
+    std::string label = "[estimator-sweep N=" + std::to_string(N) +
+                        " sp=" + std::to_string(i) + "]";
     benchmark_estimator(M, K, N, i, label, true);
   }
 }
