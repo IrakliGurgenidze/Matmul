@@ -9,7 +9,7 @@
 #include <MatrixUtils.h>
 
 void benchmarkCSRMatmulNaive(int M, int K, int N, double sparsity,
-                            const std::string &label, bool csv = false) {
+                             const std::string &label, bool csv = false) {
   int seedA = 1;
   int seedB = 2;
 
@@ -42,7 +42,7 @@ void benchmarkCSRMatmulNaive(int M, int K, int N, double sparsity,
 }
 
 void benchmarkCSRMatmulOptimized(int M, int K, int N, double sparsity,
-                                const std::string &label, bool csv = false) {
+                                 const std::string &label, bool csv = false) {
   // std::random_device rd;
   int seedA = 1;
   int seedB = 2;
@@ -56,8 +56,8 @@ void benchmarkCSRMatmulOptimized(int M, int K, int N, double sparsity,
   CoordListMatrix forEstimateA(coordsA, M, K);
   CoordListMatrix forEstimateB(coordsB, K, N);
 
-  double estimation =
-      estimateProductSize(forEstimateA.getHashedCoords(), forEstimateB.getHashedCoords());
+  double estimation = estimateProductSize(forEstimateA.getHashedCoords(),
+                                          forEstimateB.getHashedCoords());
 
   const auto start = std::chrono::steady_clock::now();
   auto result = A.optimizedMatmul(B, estimation);
@@ -86,8 +86,9 @@ void benchmarkCSRMatmulOptimized(int M, int K, int N, double sparsity,
   REQUIRE(result.shape().second == N);
 }
 
-void benchmarkCSRBatchedMatmulNaive(int N, double sparsity, int numMats, const std::string &label,
-  bool csv = false) {
+void benchmarkCSRBatchedMatmulNaive(int N, double sparsity, int numMats,
+                                    const std::string &label,
+                                    bool csv = false) {
 
   // Generate first matrix
   int seedA = 1;
@@ -109,7 +110,7 @@ void benchmarkCSRBatchedMatmulNaive(int N, double sparsity, int numMats, const s
   const double elapsed = std::chrono::duration<double>(end - start).count();
 
   // Verify results
-  for (const auto& result : results) {
+  for (const auto &result : results) {
     REQUIRE(result.shape() == std::pair<int, int>{N, N});
   }
 
@@ -118,18 +119,16 @@ void benchmarkCSRBatchedMatmulNaive(int N, double sparsity, int numMats, const s
     std::cout << N << "," << numMats << "," << elapsed << std::endl;
   } else {
     std::cout << std::fixed << std::setprecision(6);
-    std::cout << std::left
-              << std::setw(25) << label
-              << std::right
-              << "  N=" << std::setw(6) << N
-              << "  B=" << std::setw(4) << numMats
-              << "  time=" << std::setw(10) << elapsed << " s"
+    std::cout << std::left << std::setw(25) << label << std::right
+              << "  N=" << std::setw(6) << N << "  B=" << std::setw(4)
+              << numMats << "  time=" << std::setw(10) << elapsed << " s"
               << std::endl;
   }
 }
 
-void benchmarkCSRBatchedMatmulOptimized(int N, double sparsity, int numMats, const std::string &label,
-  bool csv = false) {
+void benchmarkCSRBatchedMatmulOptimized(int N, double sparsity, int numMats,
+                                        const std::string &label,
+                                        bool csv = false) {
 
   // Generate first matrix
   int seedA = 1;
@@ -151,7 +150,7 @@ void benchmarkCSRBatchedMatmulOptimized(int N, double sparsity, int numMats, con
   const double elapsed = std::chrono::duration<double>(end - start).count();
 
   // Verify results
-  for (const auto& result : results) {
+  for (const auto &result : results) {
     REQUIRE(result.shape() == std::pair<int, int>{N, N});
   }
 
@@ -160,27 +159,23 @@ void benchmarkCSRBatchedMatmulOptimized(int N, double sparsity, int numMats, con
     std::cout << N << "," << numMats << "," << elapsed << std::endl;
   } else {
     std::cout << std::fixed << std::setprecision(6);
-    std::cout << std::left
-              << std::setw(25) << label
-              << std::right
-              << "  N=" << std::setw(6) << N
-              << "  B=" << std::setw(4) << numMats
-              << "  time=" << std::setw(10) << elapsed << " s"
+    std::cout << std::left << std::setw(25) << label << std::right
+              << "  N=" << std::setw(6) << N << "  B=" << std::setw(4)
+              << numMats << "  time=" << std::setw(10) << elapsed << " s"
               << std::endl;
   }
 }
 
 /** CSR matmul TESTS **/
 
-TEST_CASE("CSR Performance Benchmark, (single op, naive)",
-          "[CSRMatrix]") {
+TEST_CASE("CSR Performance Benchmark, (single op, naive)", "[CSRMatrix]") {
   SECTION("Single matmul operation, small naive") {
     benchmarkCSRMatmulNaive(1000, 800, 1000, 0.005, "[naive matmul, small]");
   }
 
   SECTION("Single matmul operation, medium naive") {
     benchmarkCSRMatmulNaive(10000, 20000, 20000, 0.005,
-                           "[naive matmul, medium]");
+                            "[naive matmul, medium]");
   }
 
   // SECTION("Single matmul operation, large naive") {
@@ -229,7 +224,7 @@ TEST_CASE("CSR Scaling Sweep (single op, optimized)", "[benchmark]") {
 TEST_CASE("CSR Scaling Sweep (batched naive)", "[benchmark][batch]") {
   double sparsity = 0.00005;
   int start_N = 10000;
-  int end_N = 100000;
+  int end_N = 20000;
   int step = 10000;
   int numMats = 20; // Number of right-hand matrices in each batch
 

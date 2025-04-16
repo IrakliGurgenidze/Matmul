@@ -115,7 +115,6 @@ CoordListMatrix::naiveMatmul(const CoordListMatrix &right) const {
   }
 
   std::vector<std::unordered_set<int>> resSets(rowsA);
-
   for (int i = 0; i < rowA.size(); i++) {
     for (int j : rowA[i]) {
       if (j >= 0 && j < rowsB) {
@@ -145,7 +144,7 @@ CoordListMatrix::naiveMatmul(const CoordListMatrix &right) const {
 CoordListMatrix CoordListMatrix::optimizedMatmul(const CoordListMatrix &right,
                                                  double estimation) {
   if (this->N != right.M) {
-      throw std::invalid_argument("Matrix dimensions do not align.");
+    throw std::invalid_argument("Matrix dimensions do not align.");
   }
 
   // Check for matrix dimension mismatch

@@ -1,6 +1,6 @@
 #include "../include/CSRMatrix.h"
-#include <algorithm>
 #include <Estimator.h>
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
@@ -11,12 +11,11 @@ static bool compareRowCol(const Coord &a, const Coord &b) {
 
 static std::vector<int> visited;
 
-inline void ensureVisitedSize( int numCols) {
+inline void ensureVisitedSize(int numCols) {
   if (static_cast<int>(visited.size()) < numCols) {
     visited.assign(numCols, -1);
   }
 }
-
 
 CSRMatrix::CSRMatrix(const std::string &filename) {
   std::ifstream fin(filename);
@@ -196,7 +195,6 @@ CSRMatrix CSRMatrix::naiveMatmul(const CSRMatrix &right) const {
   result.colIdx = std::move(resultColIdx);
 
   return result;
-
 }
 
 CSRMatrix CSRMatrix::optimizedMatmul(const CSRMatrix &right, double estimate) {
@@ -219,7 +217,6 @@ CSRMatrix CSRMatrix::optimizedMatmul(const CSRMatrix &right, double estimate) {
 
   // std::vector<std::unordered_set<int>> resSets(rowsA);
   ensureVisitedSize(colsB);
-
 
   for (int i = 0; i < rowsA; ++i) {
     const size_t before = resultColIdx.size();
@@ -249,8 +246,8 @@ CSRMatrix CSRMatrix::optimizedMatmul(const CSRMatrix &right, double estimate) {
   return result;
 }
 
-std::vector<CSRMatrix> CSRMatrix::batchNaiveMatmul(
-    const std::vector<CSRMatrix> &rights) const {
+std::vector<CSRMatrix>
+CSRMatrix::batchNaiveMatmul(const std::vector<CSRMatrix> &rights) const {
   auto [rowsA, colsA] = this->shape();
 
   // Validate all matrix dimensions first
@@ -272,10 +269,9 @@ std::vector<CSRMatrix> CSRMatrix::batchNaiveMatmul(
   return results;
 }
 
-
-
-std::vector<CSRMatrix> CSRMatrix::batchOptimizedMatmul(
-    const std::vector<CSRMatrix> &rights, double epsilon) const {
+std::vector<CSRMatrix>
+CSRMatrix::batchOptimizedMatmul(const std::vector<CSRMatrix> &rights,
+                                double epsilon) const {
 
   for (const auto &right : rights) {
     if (this->N != right.shape().first) {
@@ -299,7 +295,7 @@ std::vector<CSRMatrix> CSRMatrix::batchOptimizedMatmul(
   for (const auto &right : rights) {
     std::vector<std::vector<int>> rightGroups(right.M);
     for (int row = 0; row < right.M; ++row) {
-      for (int idx = right.rowPtr[row]; idx < right.rowPtr[row+1]; ++idx) {
+      for (int idx = right.rowPtr[row]; idx < right.rowPtr[row + 1]; ++idx) {
         int col = right.colIdx[idx];
         rightGroups[row].push_back(col);
       }
@@ -311,8 +307,9 @@ std::vector<CSRMatrix> CSRMatrix::batchOptimizedMatmul(
 
     // Call the estimator for the current left/right pair
     // The estimator uses the hashed coordinates from each matrix
-    double estimatedJoinSize = estimateProductSize(
-            forEstimateA.getHashedCoords(), forEstimateB.getHashedCoords(), epsilon);
+    double estimatedJoinSize =
+        estimateProductSize(forEstimateA.getHashedCoords(),
+                            forEstimateB.getHashedCoords(), epsilon);
 
     // Preallocate storage for the join result using the estimated join size.
     std::vector<Coord> resultCoords;
@@ -331,11 +328,8 @@ std::vector<CSRMatrix> CSRMatrix::batchOptimizedMatmul(
     }
 
     results.emplace_back(resultCoords, this->M, right.N);
-
   }
   return results;
 }
-
-
 
 std::pair<int, int> CSRMatrix::shape() const { return {this->M, this->N}; }
