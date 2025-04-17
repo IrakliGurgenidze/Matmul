@@ -7,6 +7,7 @@ set(SOURCES
         CoordListMatrix.cpp
         CSRMatrix.cpp
         Types.cpp
+        MatrixUtils.cpp
         ${PROJECT_SOURCE_DIR}/include/external/MurmurHash3.cpp
         CSRMatrix.cpp
         ../include/CSRMatrix.h
