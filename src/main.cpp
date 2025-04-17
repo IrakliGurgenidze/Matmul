@@ -6,8 +6,7 @@
 #include <chrono>
 #include <iostream>
 #include <vector>
-#include <bits/fs_fwd.h>
-#include <bits/fs_path.h>
+#include <filesystem>
 
 int main() {
   // Initialize MurMur based pairwise hashes.
@@ -17,9 +16,15 @@ int main() {
 
   // Load CoordList matrices (for estimation)
   // Using two sample datasets
-  const std::filesystem::path workingDir = std::filesystem::current_path();
-  CoordListMatrix matrix1(workingDir / "data" / "bwm200.mtx");
-  CoordListMatrix matrix2(workingDir / "data" / "rdb200.mtx");
+#include <filesystem>
+
+    std::filesystem::path sourceDir = std::filesystem::path(__FILE__).parent_path();
+    std::filesystem::path projectRoot = sourceDir.parent_path(); // go up from src/
+    std::filesystem::path dataDir = projectRoot / "data";
+
+    CoordListMatrix matrix1(dataDir / "bwm200.mtx");
+    CoordListMatrix matrix2(dataDir / "rdb200.mtx");
+
 
   // Generate R1 and R2 sets
   auto R1Tuples = matrix1.getHashedCoords();
