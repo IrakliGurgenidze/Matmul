@@ -5,14 +5,14 @@ This project implements a fast, probabilistic algorithm for estimating the numbe
 We have also provided a series of sparse matrix formats and multiplication functions to take leverage this estimate for greater efficiency. Sample usage of all matrix classes and functions can be found in `src/main.cpp`.
 
 ## Project Layout
-Matmul/
-|-- data/            # Optional .mtx files
-|-- include/         # Header files (e.g. CoordListMatrix.h)
-|---- external/      # Third-party headers
-|-- src/             # Source files (e.g. CoordListMatrix.cpp)
-|-- tests/           # Unit tests and benchmarking drivers
-|-- CMakeLists.txt   # Root CMake config
-|-- README.md        
+Matmul/ \
+|-- data/            # Optional .mtx files \
+|-- include/         # Header files (e.g. CoordListMatrix.h) \
+|---- external/      # Third-party headers \
+|-- src/             # Source files (e.g. CoordListMatrix.cpp) \
+|-- tests/           # Unit tests and benchmarking drivers \
+|-- CMakeLists.txt   # Root CMake config \
+|-- README.md         \
 
 ## Build and Run Instructions
 
