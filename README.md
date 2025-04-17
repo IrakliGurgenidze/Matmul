@@ -6,13 +6,13 @@ We have also provided a series of sparse matrix formats and multiplication funct
 
 ## Project Layout
 Matmul/ \
-|-- data/            # Optional .mtx files \
-|-- include/         # Header files (e.g. CoordListMatrix.h) \
-|---- external/      # Third-party headers \
-|-- src/             # Source files (e.g. CoordListMatrix.cpp) \
-|-- tests/           # Unit tests and benchmarking drivers \
-|-- CMakeLists.txt   # Root CMake config \
-|-- README.md         \
+- `data/` – Optional .mtx files
+- `include/` – Header files
+  - `external/` – Third-party headers (e.g., hashing, Catch2)
+- `src/` – Source files
+- `tests/` – Unit tests and benchmark drivers
+- `CMakeLists.txt` – Root build configuration
+- `README.md` – Project documentatio
 
 ## Build and Run Instructions
 
