@@ -37,7 +37,7 @@ make
 This will compile the project.
 
 #### Running the Program (will execute `src/main.cpp`)
-From the `build` directory, run `./Matmul`
+From the `build/src` directory, run `./Matmul`
 
 ## Usage
 Please refer to `src/main.cpp` for basic usage. 
