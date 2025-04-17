@@ -5,7 +5,7 @@ This project implements a fast, probabilistic algorithm for estimating the numbe
 We have also provided a series of sparse matrix formats and multiplication functions to take leverage this estimate for greater efficiency. Sample usage of all matrix classes and functions can be found in `src/main.cpp`.
 
 ## Project Layout
-Matmul/ \
+Matmul/ 
 - `data/` – Optional .mtx files
 - `include/` – Header files
   - `external/` – Third-party headers (e.g., hashing, Catch2)
