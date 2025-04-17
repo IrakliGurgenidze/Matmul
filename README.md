@@ -12,7 +12,7 @@ Matmul/
 - `src/` – Source files
 - `tests/` – Unit tests and benchmark drivers
 - `CMakeLists.txt` – Root build configuration
-- `README.md` – Project documentatio
+- `README.md` – Project documentation
 
 ## Build and Run Instructions
 
